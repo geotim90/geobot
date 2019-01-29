@@ -1,0 +1,12 @@
+{
+    "name": "geobot",
+    "version": "0.0.1",
+    "description": "Clan member management assistant",
+    "main": "index.js",
+    "author": "Geotim",
+    "dependencies": {
+        "better-sqlite-pool": "^0.2.0",
+        "discord.js": "^11.4.2",
+        "enmap": "^4.6.6"
+    }
+}
