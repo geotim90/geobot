@@ -1,0 +1,21 @@
+# Datasource
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.url=jdbc:h2:file:./geobot
+spring.datasource.username=TODO
+spring.datasource.password=TODO
+
+# Geobot
+geobot.prefix.default=G>
+geobot.prefix.mention=true
+geobot.prefix.name=Geobot
+
+# H2
+spring.h2.console.enabled=false
+
+# JDA
+jda.active=TODO
+jda.shards=TODO (1 shard per 1000 guilds is recommended)
+jda.token=TODO
+
+# JPA
+spring.jpa.hibernate.ddl-auto=validate
