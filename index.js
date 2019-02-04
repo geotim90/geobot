@@ -33,14 +33,14 @@ installInspect(handlers)
 
 // message handler
 client.on('message', onMessage)
-function onMessage(msg) {
-    if (isRelevantMessage(msg)) {
+function onMessage(message) {
+    if (isRelevantMessage(message)) {
         // extract args from message
-        msg.args = msg.content.split(/\s+/g)
-        if (msg.args[1]) {
+        message.args = message.content.split(/\s+/g)
+        if (message.args[1]) {
             for (const prefix in handlers) {
-                if (msg.args[1] === prefix) {
-                    handlers[prefix](msg)
+                if (message.args[1] === prefix) {
+                    handlers[prefix](message)
                     break
                 }
             }
@@ -48,16 +48,16 @@ function onMessage(msg) {
     }
 }
 
-function isRelevantMessage(msg) {
+function isRelevantMessage(message) {
     return (
         // message must be posted in a guild
-        msg.guild
+        message.guild
         // ignore all bots
-        && !msg.author.bot
+        && !message.author.bot
         // message must contain a parsable string
-        && typeof msg.content === 'string'
+        && typeof message.content === 'string'
         // this bot must be addressed directly
-        && msg.content.startsWith('<@' + msg.client.user.id + '>')
+        && message.content.startsWith('<@' + message.client.user.id + '>')
     )
 }
 

@@ -1,19 +1,19 @@
 const games = require('./games.json')
 
-function findGame(msg, input) {
-    console.log(`[TRACE] discord-utils.findGame(Message@${msg.id}, ${JSON.stringify(input)})`)
+function findGame(message, input) {
+    console.log(`[TRACE] discord-utils.findGame(Message@${message.id}, ${JSON.stringify(input)})`)
     return new Promise((resolve, reject) => {
         if (!input) {
             reject({ message: 'Missing argument' })
         } else if (input.match(/^\d+$/)) {
             // game application id
-            findGameByApplicationId(msg, input)
+            findGameByApplicationId(message, input)
                 .then(game => resolve(game))
                 .catch(error => reject(error))
         } else {
             // game name?
             const search = input.toLowerCase()
-            const member = msg.guild.members.find(e =>
+            const member = message.guild.members.find(e =>
                 e.presence && e.presence.game && e.presence.game.name && e.presence.game.name.toLowerCase().includes(search)
             )
             if (member) {
@@ -36,25 +36,25 @@ function findGame(msg, input) {
     })
 }
 
-function findMember(msg, input) {
-    console.log(`[TRACE] discord-utils.findMember(Message@${msg.id}, ${JSON.stringify(input)})`)
+function findMember(message, input) {
+    console.log(`[TRACE] discord-utils.findMember(Message@${message.id}, ${JSON.stringify(input)})`)
     return new Promise((resolve, reject) => {
         if (!input) {
             reject({ message: 'Missing argument' })
         } else if (input.match(/^\d+$/)) {
             // member id
-            findMemberById(msg, input)
+            findMemberById(message, input)
                 .then(member => resolve(member))
                 .catch(error => reject(error))
         } else if (input.match(/^<@\d+>$/)) {
             // member mention
-            findMemberById(msg, input.slice(2, -1))
+            findMemberById(message, input.slice(2, -1))
                 .then(member => resolve(member))
                 .catch(error => reject(error))
         } else {
             // member name?
             const search = input.toLowerCase()
-            const member = msg.guild.members.find(e =>
+            const member = message.guild.members.find(e =>
                 (e.nickname && e.nickname.toLowerCase().includes(search))
                 || (e.user.tag && e.user.tag.toLowerCase().includes(search))
                 || (e.user.username && e.user.username.toLowerCase().includes(search))
@@ -68,18 +68,18 @@ function findMember(msg, input) {
     })
 }
 
-function findMemberById(msg, memberId) {
-    console.log(`[TRACE] discord-utils.findMemberById(Message@${msg.id}, ${JSON.stringify(memberId)})`)
+function findMemberById(message, memberId) {
+    console.log(`[TRACE] discord-utils.findMemberById(Message@${message.id}, ${JSON.stringify(memberId)})`)
     return new Promise((resolve, reject) => {
         if (!memberId || !memberId.match(/^\d+$/)) {
             reject({ message: 'Invalid member id' })
         } else {
             // guild member?
-            const member = msg.guild.members.get(memberId)
+            const member = message.guild.members.get(memberId)
             if (member) {
                 resolve(member.user)
             } else {
-                msg.guild.fetchMember(memberId)
+                message.guild.fetchMember(memberId)
                     .then(member => resolve(member))
                     .catch(error => reject(error))
             }
@@ -87,25 +87,25 @@ function findMemberById(msg, memberId) {
     })
 }
 
-function findRole(msg, input) {
-    console.log(`[TRACE] discord-utils.findRole(Message@${msg.id}, ${JSON.stringify(input)})`)
+function findRole(message, input) {
+    console.log(`[TRACE] discord-utils.findRole(Message@${message.id}, ${JSON.stringify(input)})`)
     return new Promise((resolve, reject) => {
         if (!input) {
             reject({ message: 'Missing argument' })
         } else if (input.match(/^\d+$/)) {
             // role id
-            return findRoleById(msg, input)
+            return findRoleById(message, input)
                 .then(role => resolve(role))
                 .catch(error => reject(error))
         } else if (input.match(/^<@&\d+>$/)) {
             // role mention
-            return findRoleById(msg, input.slice(3, -1))
+            return findRoleById(message, input.slice(3, -1))
                 .then(role => resolve(role))
                 .catch(error => reject(error))
         } else {
             // role name?
             const search = input.toLowerCase()
-            const role = msg.guild.roles.find(e =>
+            const role = message.guild.roles.find(e =>
                 e.name && e.name.toLowerCase().includes(search)
             )
             if (role) {
@@ -117,13 +117,13 @@ function findRole(msg, input) {
     })
 }
 
-function findRoleById(msg, roleId) {
-    console.log(`[TRACE] discord-utils.findRoleById(Message@${msg.id}, ${JSON.stringify(roleId)})`)
+function findRoleById(message, roleId) {
+    console.log(`[TRACE] discord-utils.findRoleById(Message@${message.id}, ${JSON.stringify(roleId)})`)
     return new Promise((resolve, reject) => {
         if (!roleId || !roleId.match(/^\d+$/)) {
             reject({ message: 'Invalid role id' })
         } else {
-            const role = msg.guild.roles.get(roleId)
+            const role = message.guild.roles.get(roleId)
             if (role) {
                 resolve(role)
             } else {
@@ -133,25 +133,25 @@ function findRoleById(msg, roleId) {
     })
 }
 
-function findUser(msg, input) {
-    console.log(`[TRACE] discord-utils.findUser(Message@${msg.id}, ${JSON.stringify(input)})`)
+function findUser(message, input) {
+    console.log(`[TRACE] discord-utils.findUser(Message@${message.id}, ${JSON.stringify(input)})`)
     return new Promise((resolve, reject) => {
         if (!input) {
             reject({ message: 'Missing argument' })
         } else if (input.match(/^\d+$/)) {
             // user id
-            findUserById(msg, input)
+            findUserById(message, input)
                 .then(user => resolve(user))
                 .catch(error => reject(error))
         } else if (input.match(/^<@\d+>$/)) {
             // user mention
-            findUserById(msg, input.slice(2, -1))
+            findUserById(message, input.slice(2, -1))
                 .then(user => resolve(user))
                 .catch(error => reject(error))
         } else {
             // user name?
             const search = input.toLowerCase()
-            const member = msg.guild.members.find(e =>
+            const member = message.guild.members.find(e =>
                 (e.nickname && e.nickname.toLowerCase().includes(search))
                 || (e.user.tag && e.user.tag.toLowerCase().includes(search))
                 || (e.user.username && e.user.username.toLowerCase().includes(search))
@@ -165,19 +165,19 @@ function findUser(msg, input) {
     })
 }
 
-function findUserById(msg, userId) {
-    console.log(`[TRACE] discord-utils.findUserById(Message@${msg.id}, ${JSON.stringify(userId)})`)
+function findUserById(message, userId) {
+    console.log(`[TRACE] discord-utils.findUserById(Message@${message.id}, ${JSON.stringify(userId)})`)
     return new Promise((resolve, reject) => {
         if (!userId || !userId.match(/^\d+$/)) {
             reject({ message: 'Invalid user id' })
         } else {
             // guild member?
-            const member = msg.guild.members.get(userId)
+            const member = message.guild.members.get(userId)
             if (member) {
                 resolve(member.user)
             } else {
                 // client user?
-                msg.client.fetchUser(userId, false)
+                message.client.fetchUser(userId, false)
                     .then(user => resolve(user))
                     .catch(error => reject(error))
             }

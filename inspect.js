@@ -8,67 +8,67 @@ function installInspect(handlers) {
     handlers['inspect'] = handleInspectMessage
 }
 
-function handleInspectMessage(msg) {
-    console.log(`[TRACE] inspect.handleInspectMessage(Message@${msg.id})`)
-    if (checkAuthorization(msg, 'inspect')) {
-        if (msg.args[2]) {
-            if (msg.args[2].match(/^u(ser)?$/i)) {
-                inspectUser(msg, msg.args[3])
-            } else if (msg.args[2].match(/^r(ole)?$/i)) {
-                inspectRole(msg, msg.args[3])
-            } else if (msg.args[2].match(/^g(ame)?$/i)) {
-                inspectGame(msg, msg.args[3])
-            } else if (msg.args[2].match(/^(d(ata(base)?)?|db)$/i)) {
-                inspectDatabase(msg)
+function handleInspectMessage(message) {
+    console.log(`[TRACE] inspect.handleInspectMessage(Message@${message.id})`)
+    if (checkAuthorization(message, 'inspect')) {
+        if (message.args[2]) {
+            if (message.args[2].match(/^u(ser)?$/i)) {
+                inspectUser(message, message.args[3])
+            } else if (message.args[2].match(/^r(ole)?$/i)) {
+                inspectRole(message, message.args[3])
+            } else if (message.args[2].match(/^g(ame)?$/i)) {
+                inspectGame(message, message.args[3])
+            } else if (message.args[2].match(/^(d(ata(base)?)?|db)$/i)) {
+                inspectDatabase(message)
             } else {
-                inspectUser(msg, msg.args[2])
+                inspectUser(message, message.args[2])
             }
         } else {
-            reply(msg, 'here are some examples on how to use `inspect`:```' + `
-                @Geobot inspect user ${msg.client.user.id}\n`
-                + `@Geobot inspect role ${msg.guild.defaultRole.id}\n`
+            reply(message, 'here are some examples on how to use `inspect`:```java\n'
+                + `@Geobot inspect user ${message.client.user.id}\n`
+                + `@Geobot inspect role ${message.guild.defaultRole.id}\n`
                 + '@Geobot inspect game 422772752647323649\n'
                 + '```')
         }
     }
 }
 
-function inspectDatabase(msg) {
-    console.log(`[TRACE] inspect.inspectDatabase(Message@${msg.id})`)
-    reply(msg, 'here is what I found:```js\n' + stringify(msg.client.db.get(msg.guild.id), 1945) + '```')
+function inspectDatabase(message) {
+    console.log(`[TRACE] inspect.inspectDatabase(Message@${message.id})`)
+    reply(message, 'here is what I found:```js\n' + stringify(message.client.db.get(message.guild.id), 1945) + '```')
 }
 
-function inspectGame(msg, input) {
-    console.log(`[TRACE] inspect.inspectGame(Message@${msg.id}, ${JSON.stringify(input)})`)
-    findGame(msg, input).then(game => {
-        reply(msg, 'here is what I found:```js\n' + stringify(getGameProps(game), 1945) + '```')
+function inspectGame(message, input) {
+    console.log(`[TRACE] inspect.inspectGame(Message@${message.id}, ${JSON.stringify(input)})`)
+    findGame(message, input).then(game => {
+        reply(message, 'here is what I found:```js\n' + stringify(getGameProps(game), 1945) + '```')
     }).catch(noGame => {
         console.log(`[DEBUG] Could not find game ${JSON.stringify(input)} - reason: ${JSON.stringify(noGame.message)}`)
-        reply(msg, `no game ${JSON.stringify(input)} found`)
+        reply(message, `no game ${JSON.stringify(input)} found`)
     })
 }
 
-function inspectRole(msg, input) {
-    console.log(`[TRACE] inspect.inspectRole(Message@${msg.id}, ${JSON.stringify(input)})`)
-    findRole(msg, input).then(role => {
-        reply(msg, 'here is what I found:```js\n' + stringify(getRoleProps(role), 1945) + '```')
+function inspectRole(message, input) {
+    console.log(`[TRACE] inspect.inspectRole(Message@${message.id}, ${JSON.stringify(input)})`)
+    findRole(message, input).then(role => {
+        reply(message, 'here is what I found:```js\n' + stringify(getRoleProps(role), 1945) + '```')
     }).catch(noRole => {
         console.log(`[DEBUG] Could not find role ${JSON.stringify(input)} - reason: ${JSON.stringify(noRole.message)}`)
-        reply(msg, `no role ${JSON.stringify(input)} found`)
+        reply(message, `no role ${JSON.stringify(input)} found`)
     })
 }
 
-function inspectUser(msg, input) {
-    console.log(`[TRACE] inspect.inspectUser(Message@${msg.id}, ${JSON.stringify(input)})`)
-    findMember(msg, input).then(member => {
-        reply(msg, 'here is what I found:```js\n' + stringify(getMemberProps(member), 1945) + '```')
+function inspectUser(message, input) {
+    console.log(`[TRACE] inspect.inspectUser(Message@${message.id}, ${JSON.stringify(input)})`)
+    findMember(message, input).then(member => {
+        reply(message, 'here is what I found:```js\n' + stringify(getMemberProps(member), 1945) + '```')
     }).catch(noMember => {
         console.log(`[DEBUG] Could not find member ${JSON.stringify(input)} - reason: ${JSON.stringify(noMember.message)}`)
-        findUser(msg, input).then(user => {
-            reply(msg, 'here is what I found:```js\n' + stringify(getUserProps(user), 1945) + '```')
+        findUser(message, input).then(user => {
+            reply(message, 'here is what I found:```js\n' + stringify(getUserProps(user), 1945) + '```')
         }).catch(noUser => {
             console.log(`[DEBUG] Could not find user ${JSON.stringify(input)} - reason: ${JSON.stringify(noUser.message)}`)
-            reply(msg, `no user ${JSON.stringify(input)} found`)
+            reply(message, `no user ${JSON.stringify(input)} found`)
         })
     })
 }
