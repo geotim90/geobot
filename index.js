@@ -3,10 +3,11 @@ const config = require('./config.json')
 const Discord = require('discord.js')
 const Enmap = require('enmap')
 
-const { trackHealth } = require('./bot_modules/health')
-const { trackActivity } = require('./bot_modules/tracker')
+const { trackHealth } = require('./health')
+const { trackActivity } = require('./tracker')
 
-const { installPing } = require('./bot_modules/ping')
+const { installPing } = require('./ping')
+const { installInspect } = require('./inspect')
 
 // initialize Discord client
 const client = new Discord.Client()
@@ -28,6 +29,7 @@ trackActivity(client)
 // install commands
 const handlers = {}
 installPing(handlers)
+installInspect(handlers)
 
 // message handler
 client.on('message', onMessage)
