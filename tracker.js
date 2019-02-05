@@ -97,7 +97,7 @@ function onGuildDelete(guild) {
 
 function onGuildMemberRemove(member) {
     console.log(`[UPDATE] {guild=${member.guild.id}|member=${member.id}} guildMemberRemove`)
-    guild.client.db.delete(guild.id, `${member.id}`)
+    guild.client.db.delete(member.guild.id, `${member.id}`)
 }
 
 function onRoleDelete(role) {
