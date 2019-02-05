@@ -11,6 +11,10 @@ https://discordapp.com/oauth2/authorize?client_id=536808091455324160&scope=bot&p
 ## Commands
 *Geobot* will only respond to messages that start with a mention for it, e.g. `@Geobot`.
 
+### `ping`
+
+### `inspect`
+
 ## Development
 
 ### Installing dependencies
@@ -37,15 +41,17 @@ node .
 
 ### Database
 
-#### Data hierarchy
-
 ```js
 {
+    "games": {
+        "${applicationID}": "${name}"
+    },
+    
     "${guild.id}": {
         "${member.id}": {
             "lastMessage": "${timestamp}",
             "lastOnline": "${timestamp}",
-            "${game.applicationID}": "${timestamp}"
+            "${applicationID}": "${timestamp}"
         }
     }
 }
