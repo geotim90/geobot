@@ -1,7 +1,7 @@
 {
     "name": "geobot",
-    "version": "0.0.1",
-    "description": "Clan member management assistant",
+    "version": "1.0.0",
+    "description": "Guild activity monitor",
     "main": "index.js",
     "author": "Geotim",
     "dependencies": {
