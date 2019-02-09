@@ -44,7 +44,7 @@ There are four permission levels. If a user has no matching roles, *Geobot* will
 
 *Admins* can execute `@Geobot set timeout lastMessage $1` to configure how many days ago *members* need to have posted messages in channels *Geobot* can read messages in.  *Admins* can execute `@Geobot get timeout lastMessage` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `60` (2 months).
 
-*Admins* can execute `@Geobot set game timeout $1 $2` to configure how many days ago *members* need to have played a certain game. *Admins* can execute `@Geobot unset game timeout $1` to remove a game from the configuration. *Admins* can execute `@Geobot get game timeout` to check how this setting is currently configured. `$1` may a game name or application ID. `$2` must be a positive integer between `1` (1 day) and `365` (1 year). No games are monitored by default.
+*Admins* can execute `@Geobot set game timeout $1 $2` to configure how many days ago *members* need to have played a certain game. *Admins* can execute `@Geobot unset game timeout $1` to remove a game from the configuration. *Admins* can execute `@Geobot get game timeout $1` to check how this setting is currently configured. `$1` may a game name or application ID. `$2` must be a positive integer between `1` (1 day) and `365` (1 year). No games are monitored by default.
 
 *Admins* can execute `@Geobot set member lastOnline $1 $2` to overwite when a guild member was last online. *Admins* can execute `@Geobot get member lastOnline $1` to check when a guild member was last online. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
@@ -79,8 +79,7 @@ The following sections are only relevant for developers of the bot itself.
 
 ```json
 {
-    "help-url": "https://github.com/geotim90/geobot/blob/dev/README.md#commands",
-    "superadmin": "replace-with-your-discord-user-id",
+    "admin": "replace-with-your-discord-user-id",
     "token": "replace-with-your-discord-bot-token"
 }
 ```
