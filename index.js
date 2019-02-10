@@ -222,7 +222,8 @@ function onSetContribution(message, member) {
 
 function doSetContribution(message, member) {
     if (member) {
-        reply(message, ":head_bandage:")
+        db.set(message.guild.id, true, `members.${member.id}.contribution`)
+        reply(message, `contribution by **${getName(member)}** set to ✅`)
     }
 }
 
@@ -230,9 +231,14 @@ function onGetContribution(message, member) {
     doGetContribution(message, getMember(message, member))
 }
 
-function doSetContribution(message, member) {
+function doGetContribution(message, member) {
     if (member) {
-        reply(message, ":head_bandage:")
+        const contribution = db.get(message.guild.id, `members.${member.id}.contribution`)
+        if (contribution === true) {
+            reply(message, `**${getName(member)}** has made a contribution 🎉`)
+        } else {
+            reply(message, `**${getName(member)}** has **not** made a contribution 😢`)
+        }
     }
 }
 
@@ -242,7 +248,8 @@ function onUnsetContribution(message, member) {
 
 function doUnsetContribution(message, member) {
     if (member) {
-        reply(message, ":head_bandage:")
+        db.delete(message.guild.id, `members.${member.id}.contribution`)
+        reply(message, `contribution by **${getName(member)}** set to ❌`)
     }
 }
 
@@ -423,7 +430,7 @@ function getMember(message, input) {
     } else if (member.size > 1) {
         reply(message, "I found " + member.size + " guild members matching your input `" + Discord.Util.escapeMarkdown(input) + "` 🤔")
         let dump = "```css"
-        member.forEach(e => dump = dump + `\n${e.id} - ` + (e.nickname ? `${e.nickname} / ` : "") + `${e.user.username} / ${e.user.tag}`)
+        member.forEach(e => dump = dump + `\n${e.id} - ${getName(e)} / ${e.user.tag}`)
         dump = dump + "```"
         send(message, dump)
         return false
@@ -552,6 +559,14 @@ function getTimestamp(message, input) {
     } else {
         reply(message, "you did not provide an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`) 😟")
         return false
+    }
+}
+
+function getName(member) {
+    if (member.nickname) {
+        return member.nickname
+    } else {
+        return member.user.username
     }
 }
 
