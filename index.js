@@ -61,6 +61,7 @@ const MOD = /^mod\b/i
 const ADMIN = /^admin\b/i
 const LAST_ONLINE = /^lastOnline\b/i
 const LAST_MESSAGE = /^lastMessage\b/i
+const LAST_PLAYED = /^lastPlayed\b/i
 
 function onMessage(message) {
     if (isRelevantMessage(message)) {
@@ -306,14 +307,14 @@ function doGetTimeoutAll(message) {
 
 function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
     if (timestamp) {
-        doUnsetMemberGame(message, getMemberKey(key), getMember(message, member), getGame(gameOrTimestamp), getTimestamp(timestamp))
+        doSetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, gameOrTimestamp), getTimestamp(message, timestamp))
     } else {
         doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, gameOrTimestamp))
     }
 }
 
-function doUnsetMemberGame(message, key, member, game, timeout) {
-    if (key && member && game && timeout) {
+function doSetMemberGame(message, key, member, game, timestamp) {
+    if (key && member && game && timestamp) {
         reply(message, ":head_bandage:")
     }
 }
@@ -421,7 +422,7 @@ function getMember(message, input) {
         return false
     } else if (member.size > 1) {
         reply(message, "I found " + member.size + " guild members matching your input `" + Discord.Util.escapeMarkdown(input) + "` 🤔")
-        let dump = "```js"
+        let dump = "```css"
         member.forEach(e => dump = dump + `\n${e.id} - ` + (e.nickname ? `${e.nickname} / ` : "") + `${e.user.username} / ${e.user.tag}`)
         dump = dump + "```"
         send(message, dump)
@@ -470,7 +471,7 @@ function getRole(message, input) {
         return false
     } else if (role.size > 1) {
         reply(message, "I found " + role.size + " guild roles matching your input `" + Discord.Util.escapeMarkdown(input) + "` 🤔")
-        let dump = "```js"
+        let dump = "```css"
         role.forEach(e => dump = dump + `\n${e.id} - ${e.name}`)
         dump = dump + "```"
         send(message, dump)
@@ -516,9 +517,43 @@ function getMemberKey(message, key) {
     }
 }
 
-// TODO getGame (lookup in db)
+function getGame(message, input) {
+    if (!input) {
+        reply(message, "you did not provide a game name or application ID 😟")
+        return false
+    }
+    if (/^\d+$/.test(input)) {
+        const game = db.get("games", input)
+        console.log(game)
+        if (game) {
+            return { applicationID: input, name: game }
+        }
+    }
+    const search = input.toLowerCase()
+    const game = Object.entries(db.get("games")).filter(([k, v]) => v.toLowerCase().includes(search)).map(([k, v]) => ({ applicationID: k, name: v }))
+    if (game.length < 1) {
+        reply(message, "I couldn't find any game matching your input `" + Discord.Util.escapeMarkdown(input) + "` 😟")
+        return false
+    } else if (game.length > 1) {
+        reply(message, "I found " + game.length + " games matching your input `" + Discord.Util.escapeMarkdown(input) + "` 🤔")
+        let dump = "```css"
+        game.forEach(e => dump = dump + `\n${e.applicationID} - ${e.name}`)
+        dump = dump + "```"
+        send(message, dump)
+        return false
+    } else {
+        return game[0]
+    }
+}
 
-// TODO getTimestamp (parse ISO)
+function getTimestamp(message, input) {
+    if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?)?Z?$/.test(input)) {
+        return new Date(input)
+    } else {
+        reply(message, "you did not provide an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`) 😟")
+        return false
+    }
+}
 
 function reply(message, content) {
     message.reply(content)
