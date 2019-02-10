@@ -56,6 +56,9 @@ const REMOVE = /^remove\b/i
 const TIMEOUT = /^timeout\b/i
 const MEMBER = /^member\b/i
 const GAME = /^game\b/i
+const INITIATE = /^initiate\b/i
+const MOD = /^mod\b/i
+const ADMIN = /^admin\b/i
 
 function onMessage(message) {
     if (isRelevantMessage(message)) {
@@ -68,67 +71,69 @@ function onMessage(message) {
             // process command
             log("command", `guild=${message.guild.id}|message=${message.id}`, JSON.stringify(cmd))
             if (PING.test(cmd)) {
-                doPing(message)
+                onPing(message)
             } else if (HELP.test(cmd)) {
-                doHelp(message, args[1])
+                onHelp(message, args[1])
             } else if (REPORT.test(cmd)) {
-                doReport(message, args[1])
+                onReport(message, args[1])
             } else if (CONTRIBUTION.test(args[1])) {
                 if (SET.test(args[0])) {
-                    doSetContribution(message, args[2])
+                    onSetContribution(message, args[2])
                 } else if (GET.test(args[0])) {
-                    doGetContribution(message, args[2])
+                    onGetContribution(message, args[2])
                 } else if (admin && UNSET.test(args[0])) {
-                    doUnsetContribution(message, args[2])
+                    onUnsetContribution(message, args[2])
                 } else {
-                    doHelp(message, args[1])
+                    onHelp(message, args[1])
                 }
             } else if (admin) {
                 if (ROLE.test(args[1])) {
                     if (ADD.test(args[0])) {
-                        doAddRole(message, args[2], args[3])
+                        onAddRole(message, args[2], args[3])
                     } else if (REMOVE.test(args[0])) {
-                        doRemoveRole(message, args[2], args[3])
+                        onRemoveRole(message, args[2], args[3])
                     } else if (GET.test(args[0])) {
-                        doGetRole(message, args[2], args[3])
+                        onGetRole(message, args[2], args[3])
                     } else {
-                        doHelp(message, args[1])
+                        onHelp(message, args[1])
                     }
                 } else if (TIMEOUT.test(args[1])) {
                     if (SET.test(args[0])) {
-                        doSetTimeout(message, args[2], args[3])
+                        onSetTimeout(message, args[2], args[3])
                     } else if (GET.test(args[0])) {
-                        doGetTimeout(message, args[2])
+                        onGetTimeout(message, args[2])
                     } else {
-                        doHelp(message, args[1])
+                        onHelp(message, args[1])
                     }
                 } else if (MEMBER.test(args[1])) {
                     if (SET.test(args[0])) {
-                        doSetMember(message, args[2], args[3], args[4])
+                        onSetMember(message, args[2], args[3], args[4])
+                    } else if (UNSET.test(args[0])) {
+                        onUnsetMember(message, args[2], args[3])
                     } else if (GET.test(args[0])) {
-                        doGetMember(message, args[2], args[3])
+                        onGetMember(message, args[2], args[3])
                     } else {
-                        doHelp(message, args[1])
+                        onHelp(message, args[1])
                     }
                 } else if (GAME.test(args[1])) {
                     if (TIMEOUT.test(args[2])) {
                         if (SET.test(args[0])) {
-                            doSetGameTimeout(message, args[3], args[4])
+                            onSetGameTimeout(message, args[3], args[4])
                         } else if (UNSET.test(args[0])) {
-                            doUnsetGameTimeout(message, args[3])
+                            onUnsetGameTimeout(message, args[3])
                         } else if (GET.test(args[0])) {
-                            doGetGameTimeout(message, args[3])
+                            onGetGameTimeout(message, args[3])
                         } else {
-                            doHelp(message, args[1])
+                            onHelp(message, args[1])
                         }
                     } else {
-                        doHelp(message, args[1])
+                        onHelp(message, args[1])
                     }
                 } else {
-                    doHelp(message, cmd)
+                    onHelp(message, cmd)
                 }
             } else {
-                doHelp(message, cmd)
+                onHelp(message, cmd)
             }
         }
         // update "lastMessage"
@@ -182,72 +187,236 @@ function hasRole(member, key) {
     return roles && roles.find(role => member.roles.has(role))
 }
 
-function doPing(message) {
+function onPing(message) {
     reply(message, "Pong!")
 }
 
-function doHelp(message, command) {
+function onHelp(message, command) {
     reply(message, "you can find the manual here: <https://github.com/geotim90/geobot/blob/dev/README.md#commands>")
 }
 
-function doReport(message, user) {
+function onReport(message, member) {
+    if (member) {
+        doReportMember(message, getMember(message, member))
+    } else {
+        doReportGuild(message)
+    }
+}
+
+function doReportMember(message, member) {
+    if (member) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function doReportGuild(message) {
     reply(message, ":head_bandage:")
 }
 
-function doSetContribution(message, user) {
-    reply(message, ":head_bandage:")
+function onSetContribution(message, member) {
+    doSetContribution(message, getMember(message, member))
 }
 
-function doGetContribution(message, user) {
-    reply(message, ":head_bandage:")
+function doSetContribution(message, member) {
+    if (member) {
+        reply(message, ":head_bandage:")
+    }
 }
 
-function doUnsetContribution(message, user) {
-    reply(message, ":head_bandage:")
+function onGetContribution(message, member) {
+    doGetContribution(message, getMember(message, member))
+}
+
+function doSetContribution(message, member) {
+    if (member) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onUnsetContribution(message, member) {
+    doUnsetContribution(message, getMember(message, member))
+}
+
+function doUnsetContribution(message, member) {
+    if (member) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onAddRole(message, key, role) {
+    doAddRole(message, getRoleKey(message, key), getRole(message, role))
 }
 
 function doAddRole(message, key, role) {
-    reply(message, ":head_bandage:")
+    if (key && role) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onRemoveRole(message, key, role) {
+    doRemoveRole(message, getRoleKey(message, key), getRole(message, role))
 }
 
 function doRemoveRole(message, key, role) {
-    reply(message, ":head_bandage:")
+    if (key && role) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onGetRole(message, key) {
+    doGetRole(message, getRoleKey(message, key))
 }
 
 function doGetRole(message, key) {
-    reply(message, ":head_bandage:")
+    if (key) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onSetTimeout(message, key, days) {
+    doSetTimeout(message, getTimeoutKey(message, key), getDays(message, days))
 }
 
 function doSetTimeout(message, key, days) {
-    reply(message, ":head_bandage:")
+    if (key && days) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onGetTimeout(message, key) {
+    if (key) {
+        doGetTimeout(message, getTimeoutKey(message, key))
+    } else {
+        doGetTimeoutAll(message)
+        doGetGameTimeoutAll(message)
+    }
 }
 
 function doGetTimeout(message, key) {
+    if (key) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function doGetTimeoutAll(message) {
     reply(message, ":head_bandage:")
+}
+
+function onSetMember(message, key, member, timestamp) {
+    doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, timestamp))
 }
 
 function doSetMember(message, key, member, timestamp) {
-    reply(message, ":head_bandage:")
+    if (key && member && timestamp) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onUnsetMember(message, key, member) {
+    doUnsetMember(message, getMemberKey(message, key), getMember(message, member))
+}
+
+function doUnsetMember(message, key, member) {
+    if (key && member) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onGetMember(message, key, member) {
+    doGetMember(message, getMemberKey(message, key), getMember(message, member))
 }
 
 function doGetMember(message, key, member) {
-    reply(message, ":head_bandage:")
+    if (key && member) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onSetGameTimeout(message, game, days) {
+    doSetGameTimeout(message, getGame(message, game), getDays(message, days))
 }
 
 function doSetGameTimeout(message, game, days) {
-    reply(message, ":head_bandage:")
+    if (game && days) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onUnsetGameTimeout(message, game) {
+    doUnsetGameTimeout(message, getGame(message, game))
 }
 
 function doUnsetGameTimeout(message, game) {
-    reply(message, ":head_bandage:")
+    if (game) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function onGetGameTimeout(message, game) {
+    if (game) {
+        doGetGameTimeout(message, getGame(message, game))
+    } else {
+        doGetGameTimeoutAll(message)
+    }
 }
 
 function doGetGameTimeout(message, game) {
+    if (game) {
+        reply(message, ":head_bandage:")
+    }
+}
+
+function doGetGameTimeoutAll(message) {
     reply(message, ":head_bandage:")
+}
+
+function getMember(message, input) {
+    if (!input) {
+        reply(message, "you did not provide a user mention, user name or user ID 😟")
+        return false
+    }
+    if (/^\d+$/.test(input)) {
+        const member = message.guild.members.get(input)
+        if (member) {
+            return member
+        }
+    }
+    if (/^<@\d+>$/.test(input)) {
+        const member = message.guild.members.get(input.slice(2, -1))
+        if (member) {
+            return member
+        }
+    }
+    const search = input.toLowerCase()
+    const member = message.guild.members.filter(e =>
+        !e.user.bot && (
+            (e.nickname && e.nickname.toLowerCase().includes(search))
+            || (e.user.username && e.user.username.toLowerCase().includes(search))
+            || (e.user.tag && e.user.tag.toLowerCase().includes(search)))
+    )
+    if (member.size < 1) {
+        reply(message, "I couldn't find any guild member matching your input `" + Discord.Util.escapeMarkdown(input) + "` 😟")
+        return false
+    } else if (member.size > 1) {
+        reply(message, "I found " + member.size + " guild members matching your input `" + Discord.Util.escapeMarkdown(input) + "` 🤔")
+        let dump = "```js"
+        member.forEach(e => dump = dump + `\n${e.id} - ` + (e.nickname ? `${e.nickname} / ` : "") + `${e.user.username} / ${e.user.tag}`)
+        dump = dump + "```"
+        send(message, dump)
+        return false
+    } else {
+        return member.first()
+    }
 }
 
 function reply(message, content) {
     message.reply(content)
+        .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
+        .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+}
+
+function send(message, content) {
+    message.channel.send(content)
         .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
         .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
 }
