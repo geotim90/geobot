@@ -59,6 +59,8 @@ const GAME = /^game\b/i
 const INITIATE = /^initiate\b/i
 const MOD = /^mod\b/i
 const ADMIN = /^admin\b/i
+const LAST_ONLINE = /^lastOnline\b/i
+const LAST_MESSAGE = /^lastMessage\b/i
 
 function onMessage(message) {
     if (isRelevantMessage(message)) {
@@ -107,11 +109,11 @@ function onMessage(message) {
                     }
                 } else if (MEMBER.test(args[1])) {
                     if (SET.test(args[0])) {
-                        onSetMember(message, args[2], args[3], args[4])
+                        onSetMember(message, args[2], args[3], args[4], args[5])
                     } else if (UNSET.test(args[0])) {
-                        onUnsetMember(message, args[2], args[3])
+                        onUnsetMember(message, args[2], args[3], args[4])
                     } else if (GET.test(args[0])) {
-                        onGetMember(message, args[2], args[3])
+                        onGetMember(message, args[2], args[3], args[4])
                     } else {
                         onHelp(message, args[1])
                     }
@@ -302,8 +304,18 @@ function doGetTimeoutAll(message) {
     reply(message, ":head_bandage:")
 }
 
-function onSetMember(message, key, member, timestamp) {
-    doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, timestamp))
+function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
+    if (timestamp) {
+        doUnsetMemberGame(message, getMemberKey(key), getMember(message, member), getGame(gameOrTimestamp), getTimestamp(timestamp))
+    } else {
+        doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, gameOrTimestamp))
+    }
+}
+
+function doUnsetMemberGame(message, key, member, game, timeout) {
+    if (key && member && game && timeout) {
+        reply(message, ":head_bandage:")
+    }
 }
 
 function doSetMember(message, key, member, timestamp) {
@@ -312,8 +324,18 @@ function doSetMember(message, key, member, timestamp) {
     }
 }
 
-function onUnsetMember(message, key, member) {
-    doUnsetMember(message, getMemberKey(message, key), getMember(message, member))
+function onUnsetMember(message, key, member, game) {
+    if (game) {
+        doUnsetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, game))
+    } else {
+        doUnsetMember(message, getMemberKey(message, key), getMember(message, member))
+    }
+}
+
+function doUnsetMemberGame(message, key, member, game) {
+    if (key && member && game) {
+        reply(message, ":head_bandage:")
+    }
 }
 
 function doUnsetMember(message, key, member) {
@@ -408,6 +430,95 @@ function getMember(message, input) {
         return member.first()
     }
 }
+
+function getRoleKey(message, input) {
+    if (INITIATE.test(input)) {
+        return "initiate"
+    } else if (MEMBER.test(input)) {
+        return "member"
+    } else if (MOD.test(input)) {
+        return "mod"
+    } else if (ADMIN.test(input)) {
+        return "admin"
+    } else {
+        reply(message, "you need to specify one of `initiate`, `member`, `mod` or `admin` 😟")
+        return false
+    }
+}
+
+function getRole(message, input) {
+    if (!input) {
+        reply(message, "you did not provide a role mention, role name or role ID 😟")
+        return false
+    }
+    if (/^\d+$/.test(input)) {
+        const role = message.guild.roles.get(input)
+        if (role) {
+            return role
+        }
+    }
+    if (/^<@&\d+>$/.test(input)) {
+        const role = message.guild.roles.get(input.slice(3, -1))
+        if (role) {
+            return role
+        }
+    }
+    const search = input.toLowerCase()
+    const role = message.guild.roles.filter(e => e.name && e.name.toLowerCase().includes(search))
+    if (role.size < 1) {
+        reply(message, "I couldn't find any guild role matching your input `" + Discord.Util.escapeMarkdown(input) + "` 😟")
+        return false
+    } else if (role.size > 1) {
+        reply(message, "I found " + role.size + " guild roles matching your input `" + Discord.Util.escapeMarkdown(input) + "` 🤔")
+        let dump = "```js"
+        role.forEach(e => dump = dump + `\n${e.id} - ${e.name}`)
+        dump = dump + "```"
+        send(message, dump)
+    } else {
+        return role.first()
+    }
+}
+
+function getTimeoutKey(message, input) {
+    if (CONTRIBUTION.test(input)) {
+        return "contribution"
+    } else if (LAST_ONLINE.test(input)) {
+        return "lastOnline"
+    } else if (LAST_MESSAGE.test(input)) {
+        return "lastMessage"
+    } else {
+        reply(message, "you did not specify one of `contribution`, `lastOnline` or `lastMessage` 😟")
+        return false
+    }
+}
+
+function getDays(message, input) {
+    if (/\d{1,3}/) {
+        const value = parseInt(input)
+        if (value >= 1 || value <= 365) {
+            return value
+        }
+    }
+    reply(message, "you did not specify a positive integer between `1` (1 day) and `365` (1 year) 😟")
+    return false
+}
+
+function getMemberKey(message, key) {
+    if (LAST_ONLINE.test(key)) {
+        return "lastOnline"
+    } else if (LAST_MESSAGE.test(key)) {
+        return "lastMessage"
+    } else if (LAST_PLAYED.test(key)) {
+        return "lastPlayed"
+    } else {
+        reply(message, "you did not specify one of `lastOnline`, `lastMessage` or `lastPlayed` 😟")
+        return false
+    }
+}
+
+// TODO getGame (lookup in db)
+
+// TODO getTimestamp (parse ISO)
 
 function reply(message, content) {
     message.reply(content)

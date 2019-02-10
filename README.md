@@ -50,7 +50,7 @@ There are four permission levels. If a user has no matching roles, *Geobot* will
 
 *Admins* can execute `@Geobot set member lastMessage $1 $2` to overwite when a guild member last posted a message. *Admins* can execute `@Geobot get member lastMessage $1` to check when a guild member last posted a message. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
-*Admins* can execute `@Geobot set member game lastPlayed $1 $2 $3` to overwite when a guild member last played a certain game. *Admins* can execute `@Geobot get member game lastPlayed $1 $2` to check when a guild member last played a certain game. `$1` may be a user mention, user name or user ID. `$2` may a game name or application ID. `$3` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
+*Admins* can execute `@Geobot set member lastPlayed $1 $2 $3` to overwite when a guild member last played a certain game. *Admins* can execute `@Geobot get member lastPlayed $1 $2` to check when a guild member last played a certain game. `$1` may be a user mention, user name or user ID. `$2` may a game name or application ID. `$3` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
 #### Mod
 
