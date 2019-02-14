@@ -259,7 +259,8 @@ function onAddRole(message, key, role) {
 
 function doAddRole(message, key, role) {
 	if (key && role) {
-		reply(message, ":head_bandage:")
+		db.push(message.guild.id, role.id, `roles.${key}`);
+		reply(message, `role **${role.name}** added as **`${key}`**`)
 	}
 }
 
@@ -269,7 +270,8 @@ function onRemoveRole(message, key, role) {
 
 function doRemoveRole(message, key, role) {
 	if (key && role) {
-		reply(message, ":head_bandage:")
+		db.delete(message.guild.id, `roles.${key}.${role.id}`);
+		reply(message, `role **${role.name}** removed as **`${key}`**`)
 	}
 }
 
@@ -279,7 +281,16 @@ function onGetRole(message, key) {
 
 function doGetRole(message, key) {
 	if (key) {
-		reply(message, ":head_bandage:")
+		const roles = db.get(message.guild.id, `roles.${key}`);
+		if (!roles || Object.keys(roles).length === 0) {
+			reply(message, `no roles have been assigned to **${key}** 😢`)
+		} else {
+			reply(message, `I found ${Object.keys(roles).length} role(s) assigned to **${key}** 🎉`);
+			let dump = "```css";
+			Object.entries(roles).forEach(([k, v]) => dump = dump + `\n${v.id} - ${v.name}`);
+			dump = dump + "```";
+			send(message, dump);
+		}
 	}
 }
 
@@ -531,7 +542,6 @@ function getGame(message, input) {
 	}
 	if (/^\d+$/.test(input)) {
 		const game = db.get("games", input);
-		console.log(game);
 		if (game) {
 			return { applicationID: input, name: game }
 		}
