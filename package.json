@@ -1,12 +1,12 @@
 {
     "name": "geobot",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "Guild activity monitor",
     "main": "index.js",
     "author": "Geotim",
     "dependencies": {
         "better-sqlite-pool": "^0.2.0",
         "discord.js": "^11.4.2",
-        "enmap": "^4.6.6"
+        "enmap": "^4.7.1"
     }
 }
