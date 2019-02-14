@@ -300,7 +300,8 @@ function onSetTimeout(message, key, days) {
 
 function doSetTimeout(message, key, days) {
 	if (key && days) {
-		reply(message, ":head_bandage:")
+		db.set(message.guild.id, days, `timeouts.${key}`);
+		reply(message, `set timeout for **${key}** to **${days} days** ✅`)
 	}
 }
 
@@ -315,12 +316,19 @@ function onGetTimeout(message, key) {
 
 function doGetTimeout(message, key) {
 	if (key) {
-		reply(message, ":head_bandage:")
+		const days = db.get(message.guild.id, `timeouts.${key}`);
+		if (days) {
+			reply(message, `the timeout for **${key}** is currently set to **${days} days** 🎉`)
+		} else {
+			reply(message, `no timeout has been set for **${key}** 😢`)
+		}
 	}
 }
 
 function doGetTimeoutAll(message) {
-	reply(message, ":head_bandage:")
+	doGetTimeout(message, "contribution");
+	doGetTimeout(message, "lastOnline");
+	doGetTimeout(message, "lastMessage")
 }
 
 function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
@@ -565,7 +573,7 @@ function getGame(message, input) {
 
 function getTimestamp(message, input) {
 	if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?)?Z?$/.test(input)) {
-		return new Date(input)
+		return new Date(input).valueOf()
 	} else {
 		reply(message, "you did not provide an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`) 😟");
 		return false
