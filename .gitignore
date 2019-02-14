@@ -1,4 +1,5 @@
 data/
 node_modules/
 config.json
+geobot.iml
 nohup.out
