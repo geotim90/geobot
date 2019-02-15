@@ -699,9 +699,11 @@ function updateLastMessage(message) {
 }
 
 function updateLastOnline(member) {
-	const now = new Date().getTime();
-	log("update", `guild=${member.guild.id}|member=${member.id}`, "lastOnline", now);
-	db.set(member.guild.id, now, `members.${member.id}.lastOnline`)
+	if (member.presence.status === "online") {
+		const now = new Date().getTime();
+		log("update", `guild=${member.guild.id}|member=${member.id}`, "lastOnline", now);
+		db.set(member.guild.id, now, `members.${member.id}.lastOnline`)
+	}
 }
 
 function updateLastPlaying(member) {
