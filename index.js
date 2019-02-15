@@ -286,9 +286,9 @@ function doReport(message) {
             }
             if (anyInactive) {
                 if (anyActive) {
-                    report3 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+                    report3 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
                 } else {
-                    report4 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+                    report4 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
                 }
             }
         }
