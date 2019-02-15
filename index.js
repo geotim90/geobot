@@ -217,7 +217,7 @@ function doReportMember(message, member) {
             result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
             result += `\n\n__**Activity**__`;
             result += `\nJoined: ${formatDaysAgo(data["joined"])}`;
-            result += `\nContributed: ${formatDaysAgo(data["contribution"])}`;
+            result += `\nContribution: ${data["contribution"] ? "✅" : "❌"}`;
             result += `\nLast online: ${formatDaysAgo(data["lastOnline"])}`;
             result += `\nLast message: ${formatDaysAgo(data["lastMessage"])}`;
             const applicationIDs = db.get(message.guild.id, "timeouts");
