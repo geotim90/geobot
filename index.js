@@ -217,14 +217,14 @@ function onReport(message, member) {
 function doReportMember(message, member) {
     if (member) {
         const data = db.get(message.guild.id, `members.${member.id}`);
+        let result = `this is what I have on **${getName(member)}** (${member.id})`;
+        result += `\n\n__**Roles**__`;
+        result += `\n${hasRole(member, "initiate") ? "✅" : "❌"} Initiate`;
+        result += `\n${hasRole(member, "member") ? "✅" : "❌"} Member`;
+        result += `\n${hasRole(member, "mod") ? "✅" : "❌"} Mod`;
+        result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
+        result += `\n\n__**Activity**__`;
         if (data) {
-            let result = `this is what I have on **${getName(member)}** (${member.id})`;
-            result += `\n\n__**Roles**__`;
-            result += `\n${hasRole(member, "initiate") ? "✅" : "❌"} Initiate`;
-            result += `\n${hasRole(member, "member") ? "✅" : "❌"} Member`;
-            result += `\n${hasRole(member, "mod") ? "✅" : "❌"} Mod`;
-            result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
-            result += `\n\n__**Activity**__`;
             result += `\nJoined: ${formatDaysAgo(data["joined"])}`;
             result += `\nContribution: ${data["contribution"] ? "✅" : "❌"}`;
             result += `\nLast online: ${formatDaysAgo(data["lastOnline"])}`;
@@ -234,10 +234,10 @@ function doReportMember(message, member) {
                 const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
                 games.forEach(game => result += `\nLast played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
             }
-            reply(message, result)
         } else {
-            reply(message, `I have not recorded any information on **${getName(member)}** (${member.id})`)
+            result += `\n**undefined**`
         }
+        reply(message, result)
     }
 }
 
