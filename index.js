@@ -207,10 +207,10 @@ function onHelp(message, command) {
 }
 
 function onReport(message, member) {
-    if (member || true) { // FIXME remove `|| true` once `doReportGuild` is implemented
+    if (member) {
         doReportMember(message, getMember(message, member))
     } else {
-        doReportGuild(message)
+        doReport(message)
     }
 }
 
@@ -241,8 +241,59 @@ function doReportMember(message, member) {
     }
 }
 
-function doReportGuild(message) {
-    reply(message, ":head_bandage:")
+function doReport(message) {
+    const initiates = message.guild.members.filter(member => hasRole(member, "initiate"));
+    let report1 = "__**Initiates that have made a contribution**__";
+    let report2 = "__**Initiates that have not made a contribution**__";
+    for (const member of initiates.values()) {
+        const joined = db.get(message.guild.id, `members.${member.id}.joined`);
+        const contribution = db.get(message.guild.id, `members.${member.id}.contribution`);
+        const timeout = getTimeout(message.guild, "contribution");
+        if (contribution) {
+            report1 += `\n✅ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+        } else if (getDaysAgo(joined) < timeout) {
+            report2 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+        } else {
+            report2 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+        }
+    }
+    const members = message.guild.members.filter(member => hasRole(member, "member"));
+    const timeoutLastOnline = getTimeout(message.guild, "lastOnline");
+    const timeoutLastMessage = getTimeout(message.guild, "lastMessage");
+    const games = Object.keys(db.get(message.guild.id, "timeouts") || {})
+        .filter(applicationID => /^\d+$/.test(applicationID))
+        .map(applicationID => ({
+            ...getGame(message, applicationID),
+            "timeout": getTimeout(message.guild, applicationID)
+        }));
+    let report3 = "__**Members that are partially inactive**__";
+    let report4 = "__**Members that are completely inactive**__";
+    for (const member of members.values()) {
+        const data = db.get(message.guild.id, `members.${member.id}`);
+        if (data) {
+            let anyActive = false;
+            let anyInactive = false;
+            const lastOnline = getDaysAgo(data["lastOnline"]);
+            anyActive |= lastOnline < timeoutLastOnline;
+            anyInactive |= lastOnline >= timeoutLastOnline;
+            const lastMessage = getDaysAgo(data["lastMessage"]);
+            anyActive |= lastMessage < timeoutLastMessage;
+            anyInactive |= lastMessage >= timeoutLastMessage;
+            for (const game of games) {
+                const lastPlayed = getDaysAgo(data[game.applicationID]);
+                anyActive |= lastPlayed < game.timeout;
+                anyInactive |= lastPlayed >= game.timeout;
+            }
+            if (anyInactive) {
+                if (anyActive) {
+                    report3 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+                } else {
+                    report4 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+                }
+            }
+        }
+    }
+    send(message, report1 + "\n\n" + report2 + "\n\n" + report3 + "\n\n" + report4)
 }
 
 function onSetContribution(message, member) {
@@ -682,14 +733,14 @@ function getTimestamp(message, input) {
 function getName(member) {
     if (member.nickname) {
         return member.nickname
-    } else {
+    } else if (member.user) {
         return member.user.username
     }
 }
 
 function formatDaysAgo(timestamp) {
     if (/^\d+$/.test(timestamp)) {
-        return `**${getDaysAgo(timestamp)} days** ago (${new Date(timestamp).toISOString()})`
+        return `**${getDaysAgo(timestamp)} days ago** (${new Date(timestamp).toISOString()})`
     } else {
         return "**undefined**"
     }
