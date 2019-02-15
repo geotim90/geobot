@@ -63,6 +63,7 @@ const ADMIN = /^admin\b/i;
 const JOINED = /^joined\b/i;
 const LAST_ONLINE = /^lastOnline\b/i;
 const LAST_MESSAGE = /^lastMessage\b/i;
+const LAST_PLAYED = /^lastPlayed\b/i;
 
 function onMessage(message) {
     if (isRelevantMessage(message)) {
@@ -380,7 +381,7 @@ function doGetTimeoutAll(message) {
 }
 
 function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
-    if (timestamp) {
+    if (LAST_PLAYED.test(key)) {
         doSetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, gameOrTimestamp), getTimestamp(message, timestamp))
     } else {
         doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, gameOrTimestamp))
@@ -402,7 +403,7 @@ function doSetMember(message, key, member, timestamp) {
 }
 
 function onUnsetMember(message, key, member, game) {
-    if (game) {
+    if (LAST_PLAYED.test(key)) {
         doUnsetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, game))
     } else {
         doUnsetMember(message, getMemberKey(message, key), getMember(message, member))
@@ -423,8 +424,23 @@ function doUnsetMember(message, key, member) {
     }
 }
 
-function onGetMember(message, key, member) {
-    doGetMember(message, getMemberKey(message, key), getMember(message, member))
+function onGetMember(message, key, member, game) {
+    if (LAST_PLAYED.test(key)) {
+        doGetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, game))
+    } else {
+        doGetMember(message, getMemberKey(message, key), getMember(message, member))
+    }
+}
+
+function doGetMemberGame(message, key, member, game) {
+    if (key && member && game) {
+        const timestamp = db.get(message.guild.id, `members.${member.id}.${game.applicationID}`)
+        if (timestamp) {
+            reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **${new Date(timestamp).toISOString()}**`)
+        } else {
+            reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **undefined**`)
+        }
+    }
 }
 
 function doGetMember(message, key, member) {
@@ -615,8 +631,10 @@ function getMemberKey(message, key) {
         return "lastOnline"
     } else if (LAST_MESSAGE.test(key)) {
         return "lastMessage"
+    } else if (LAST_PLAYED.test(key)) {
+        return "lastPlayed"
     } else {
-        reply(message, "you did not specify one of `joined`, `lastOnline` or `lastMessage` 😟");
+        reply(message, "you did not specify one of `joined`, `lastOnline`, `lastMessage` or `lastPlayed` 😟");
         return false
     }
 }
