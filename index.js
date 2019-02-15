@@ -36,6 +36,7 @@ client.on("warn", info => log("health", false, "[WARN]", info));
 // track guild member activity
 client.on("message", onMessage);
 client.on("presenceUpdate", onPresenceUpdate);
+client.on("guildMemberUpdate", onGuildMemberUpdate);
 
 // track removals for database clean-up
 client.on("guildDelete", onGuildDelete);
@@ -267,6 +268,9 @@ function doAddRole(message, key, role) {
 		}
 		db.push(message.guild.id, role.id, `roles.${key}`)
 		reply(message, `added **${key}** role **${role.name}** (${role.id})`)
+		if (key === "initiate") {
+			role.members.forEach(updateJoined)
+		}
 	}
 }
 
@@ -716,6 +720,20 @@ function updateLastPlaying(member) {
 function updateGame(game) {
 	log("update", `game=${game.applicationID}`, "->", game.name);
 	db.set("games", game.name, game.applicationID)
+}
+
+function onGuildMemberUpdate(oldMember, newMember) {
+	if (hasRole(newMember, "initiate")) {
+		updateJoined(newMember)
+	}
+}
+
+function updateJoined(member) {
+	if (!db.has(member.guild.id, `members.${member.id}.joined`)) {
+		const now = new Date().getTime();
+		log("update", `guild=${member.guild.id}|member=${member.id}`, "joined", now);
+		db.set(member.guild.id, now, `members.${member.id}.joined`)
+	}
 }
 
 function onGuildDelete(guild) {
