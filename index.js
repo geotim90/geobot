@@ -142,8 +142,9 @@ function onMessage(message) {
                 onHelp(message, cmd)
             }
         }
-        // update "lastMessage"
-        updateLastMessage(message)
+        // update activity
+        updateLastMessage(message);
+        updateLastOnline(message.member)
     }
 }
 
