@@ -225,14 +225,14 @@ function doReportMember(message, member) {
         result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
         result += `\n\n__**Activity**__`;
         if (data) {
-            result += `\nJoined: ${formatDaysAgo(data["joined"])}`;
-            result += `\nContribution: ${data["contribution"] ? "✅" : "❌"}`;
-            result += `\nLast online: ${formatDaysAgo(data["lastOnline"])}`;
-            result += `\nLast message: ${formatDaysAgo(data["lastMessage"])}`;
+            result += `\n${hasRole(member, "initiate") ? (data["joined"] ? "✅" : "❌") : "❔"} Joined: ${formatDaysAgo(data["joined"])}`;
+            result += `\n${hasRole(member, "initiate") ? (data["contribution"] ? "✅" : (getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌")) : "❔"} Contribution: ${data["contribution"] ? "✅" : "❌"}`;
+            result += `\n${hasRole(member, "member") ? (getDaysAgo(data["lastOnline"]) < getTimeout(message.guild, "lastOnline") ? "✅" : "⚠️") : "❔"} Last online: ${formatDaysAgo(data["lastOnline"])}`;
+            result += `\n${hasRole(member, "member") ? (getDaysAgo(data["lastMessage"]) < getTimeout(message.guild, "lastMessage") ? "✅" : "⚠️") : "❔"} Last message: ${formatDaysAgo(data["lastMessage"])}`;
             const applicationIDs = db.get(message.guild.id, "timeouts");
             if (applicationIDs) {
                 const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
-                games.forEach(game => result += `\nLast played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
+                games.forEach(game => result += `\n${hasRole(member, "member") ? (getDaysAgo(data[game.applicationID]) < getTimeout(message.guild, game.applicationID) ? "✅" : "⚠️") : "❔"} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
             }
         } else {
             result += `\n**undefined**`
@@ -434,7 +434,7 @@ function onGetMember(message, key, member, game) {
 
 function doGetMemberGame(message, key, member, game) {
     if (key && member && game) {
-        const timestamp = db.get(message.guild.id, `members.${member.id}.${game.applicationID}`)
+        const timestamp = db.get(message.guild.id, `members.${member.id}.${game.applicationID}`);
         if (timestamp) {
             reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **${new Date(timestamp).toISOString()}**`)
         } else {
@@ -699,6 +699,10 @@ function getDaysAgo(timestamp) {
     const dayMillis = 1000 * 60 * 60 * 24;
     const now = new Date().getTime();
     return Math.floor((now - timestamp) / dayMillis)
+}
+
+function getTimeout(guild, key) {
+    return guild && guild.id && key ? db.get(guild.id, `timeouts.${key}`) || 0 : 0;
 }
 
 function reply(message, content) {
