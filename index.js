@@ -67,7 +67,7 @@ const LAST_MESSAGE = /^lastMessage\b/i;
 function onMessage(message) {
     if (isRelevantMessage(message)) {
         log("event", `guild=${message.guild.id}|message=${message.id}`, "message");
-        if (isBotCommand(message) && isAuthorModOrAdmin(message)) {
+        if (isBotCommand(message) && isBotCommandChannel(message) && isAuthorModOrAdmin(message)) {
             const admin = isAuthorAdmin(message);
             // extract cmd and args from message
             const cmd = message.content.substring(message.content.indexOf('>') + 1).trim();
@@ -163,6 +163,13 @@ function isBotCommand(message) {
         typeof message.content === "string"
         // bot must be addressed directly
         && message.content.startsWith("<@" + client.user.id + ">")
+    )
+}
+
+function isBotCommandChannel(message) {
+    return (
+        // bot must have permission to send messages in given channel
+        message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES")
     )
 }
 
