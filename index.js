@@ -67,7 +67,7 @@ const LAST_MESSAGE = /^lastMessage\b/i;
 function onMessage(message) {
     if (isRelevantMessage(message)) {
         log("event", `guild=${message.guild.id}|message=${message.id}`, "message");
-        if (isBotCommand(message) && isAuthorModOrAdmin(message)) {
+        if (isBotCommand(message) && isBotCommandChannel(message) && isAuthorModOrAdmin(message)) {
             const admin = isAuthorAdmin(message);
             // extract cmd and args from message
             const cmd = message.content.substring(message.content.indexOf('>') + 1).trim();
@@ -142,8 +142,9 @@ function onMessage(message) {
                 onHelp(message, cmd)
             }
         }
-        // update "lastMessage"
-        updateLastMessage(message)
+        // update activity
+        updateLastMessage(message);
+        updateLastOnline(message.member)
     }
 }
 
@@ -162,6 +163,13 @@ function isBotCommand(message) {
         typeof message.content === "string"
         // bot must be addressed directly
         && message.content.startsWith("<@" + client.user.id + ">")
+    )
+}
+
+function isBotCommandChannel(message) {
+    return (
+        // bot must have permission to send messages in given channel
+        message.channel.permissionsFor(message.guild.me).has("SEND_MESSAGES")
     )
 }
 
@@ -217,7 +225,7 @@ function doReportMember(message, member) {
             result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
             result += `\n\n__**Activity**__`;
             result += `\nJoined: ${formatDaysAgo(data["joined"])}`;
-            result += `\nContributed: ${formatDaysAgo(data["contribution"])}`;
+            result += `\nContribution: ${data["contribution"] ? "✅" : "❌"}`;
             result += `\nLast online: ${formatDaysAgo(data["lastOnline"])}`;
             result += `\nLast message: ${formatDaysAgo(data["lastMessage"])}`;
             const applicationIDs = db.get(message.guild.id, "timeouts");
