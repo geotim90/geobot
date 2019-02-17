@@ -444,14 +444,14 @@ function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
 function doSetMemberGame(message, key, member, game, timestamp) {
     if (key && member && game && timestamp) {
         db.set(message.guild.id, timestamp, `members.${member.id}.${game.applicationID}`);
-        reply(message, `set **${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) to **${new Date(timestamp).toISOString()}**`)
+        reply(message, `set **${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) to **${formatTimestamp(timestamp)}**`)
     }
 }
 
 function doSetMember(message, key, member, timestamp) {
     if (key && member && timestamp) {
         db.set(message.guild.id, timestamp, `members.${member.id}.${key}`);
-        reply(message, `set **${key}** for **${getName(member)}** (${member.id}) to **${new Date(timestamp).toISOString()}**`)
+        reply(message, `set **${key}** for **${getName(member)}** (${member.id}) to **${formatTimestamp(timestamp)}**`)
     }
 }
 
@@ -488,22 +488,14 @@ function onGetMember(message, key, member, game) {
 function doGetMemberGame(message, key, member, game) {
     if (key && member && game) {
         const timestamp = db.get(message.guild.id, `members.${member.id}.${game.applicationID}`);
-        if (timestamp) {
-            reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **${new Date(timestamp).toISOString()}**`)
-        } else {
-            reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **undefined**`)
-        }
+        reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **${formatTimestamp(timestamp)}**`)
     }
 }
 
 function doGetMember(message, key, member) {
     if (key && member) {
         const timestamp = db.get(message.guild.id, `members.${member.id}.${key}`);
-        if (timestamp) {
-            reply(message, `**${key}** for **${getName(member)}** (${member.id}) is **${new Date(timestamp).toISOString()}**`)
-        } else {
-            reply(message, `**${key}** for **${getName(member)}** (${member.id}) is **undefined**`)
-        }
+        reply(message, `**${key}** for **${getName(member)}** (${member.id}) is **${formatTimestamp(timestamp)}**`)
     }
 }
 
@@ -742,7 +734,7 @@ function getName(member) {
 
 function formatDaysAgo(timestamp) {
     if (/^\d+$/.test(timestamp)) {
-        return `**${getDaysAgo(timestamp)} days ago** (${new Date(timestamp).toISOString()})`
+        return `**${getDaysAgo(timestamp)} days ago** (${formatTimestamp(timestamp)})`
     } else {
         return "**undefined**"
     }
@@ -752,6 +744,18 @@ function getDaysAgo(timestamp) {
     const dayMillis = 1000 * 60 * 60 * 24;
     const now = new Date().getTime();
     return Math.floor((now - timestamp) / dayMillis)
+}
+
+function formatTimestamp(timestamp) {
+    if (!timestamp) {
+        return "undefined"
+    }
+    const string = new Date(timestamp).toISOString();
+    if (string.endsWith("T00:00:00.000Z")) {
+        return string.substring(0, string.lastIndexOf('T'))
+    } else {
+        return string
+    }
 }
 
 function getTimeout(guild, key) {
