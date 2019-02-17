@@ -225,14 +225,14 @@ function doReportMember(message, member) {
         result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
         result += `\n\n__**Activity**__`;
         if (data) {
-            result += `\n${data["joined"] ? "✅" : (hasRole(member, "initiate") ? "❌" : "❔")} Joined: ${formatDaysAgo(data["joined"])}`;
-            result += `\n${data["contribution"] ? "✅" : (hasRole(member, "initiate") ? (getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌") : "❔")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
-            result += `\n${getDaysAgo(data["lastOnline"]) < getTimeout(message.guild, "lastOnline") ? "✅" : (hasRole(member, "member") ? "⚠️" : "❔")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
-            result += `\n${getDaysAgo(data["lastMessage"]) < getTimeout(message.guild, "lastMessage") ? "✅" : (hasRole(member, "member") ? "⚠️" : "❔")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
+            result += `\n${data["joined"] ? "✅" : (hasRole(member, "initiate") ? "❌" : "⚠️")} Joined: ${formatDaysAgo(data["joined"])}`;
+            result += `\n${data["contribution"] ? "✅" : (!hasRole(member, "initiate") || getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
+            result += `\n${getDaysAgo(data["lastOnline"]) < getTimeout(message.guild, "lastOnline") ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
+            result += `\n${getDaysAgo(data["lastMessage"]) < getTimeout(message.guild, "lastMessage") ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
             const applicationIDs = db.get(message.guild.id, "timeouts");
             if (applicationIDs) {
                 const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
-                games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < getTimeout(message.guild, game.applicationID) ? "✅" : (hasRole(member, "member") ? "⚠️" : "❔")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
+                games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < getTimeout(message.guild, game.applicationID) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
             }
         } else {
             result += `\n**undefined**`
