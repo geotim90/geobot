@@ -268,8 +268,8 @@ function doReport(message) {
             ...getGame(message, applicationID),
             "timeout": getTimeout(message.guild, applicationID)
         }));
-    let report3 = "__**Members that are partially inactive**__";
-    let report4 = "__**Members that are completely inactive**__";
+    let report3 = "__**Members that are completely inactive**__";
+    let report4 = "__**Members that are partially inactive**__";
     for (const member of members.values()) {
         const data = db.get(message.guild.id, `members.${member.id}`);
         if (data) {
@@ -288,9 +288,9 @@ function doReport(message) {
             }
             if (anyInactive) {
                 if (anyActive) {
-                    report3 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
+                    report4 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
                 } else {
-                    report4 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
+                    report3 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
                 }
             }
         }
