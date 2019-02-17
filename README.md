@@ -80,6 +80,7 @@ The following sections are only relevant for developers of the bot itself.
 ```json
 {
     "admin": "replace-with-your-discord-user-id",
+    "devmode": true,
     "token": "replace-with-your-discord-bot-token"
 }
 ```

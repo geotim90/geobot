@@ -155,6 +155,8 @@ function isRelevantMessage(message) {
         message.guild
         // ignore all bots
         && !message.author.bot
+        // check for devmode
+        && (!config.devmode || message.author.id === config.admin)
     )
 }
 
@@ -225,14 +227,14 @@ function doReportMember(message, member) {
         result += `\n${hasRole(member, "admin") ? "✅" : "❌"} Admin`;
         result += `\n\n__**Activity**__`;
         if (data) {
-            result += `\n${data["joined"] ? "✅" : (hasRole(member, "initiate") ? "❌" : "❔")} Joined: ${formatDaysAgo(data["joined"])}`;
-            result += `\n${data["contribution"] ? "✅" : (hasRole(member, "initiate") ? (getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌") : "❔")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
-            result += `\n${getDaysAgo(data["lastOnline"]) < getTimeout(message.guild, "lastOnline") ? "✅" : (hasRole(member, "member") ? "⚠️" : "❔")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
-            result += `\n${getDaysAgo(data["lastMessage"]) < getTimeout(message.guild, "lastMessage") ? "✅" : (hasRole(member, "member") ? "⚠️" : "❔")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
+            result += `\n${data["joined"] ? "✅" : (hasRole(member, "initiate") ? "❌" : "⚠️")} Joined: ${formatDaysAgo(data["joined"])}`;
+            result += `\n${data["contribution"] ? "✅" : (!hasRole(member, "initiate") || getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
+            result += `\n${getDaysAgo(data["lastOnline"]) < getTimeout(message.guild, "lastOnline") ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
+            result += `\n${getDaysAgo(data["lastMessage"]) < getTimeout(message.guild, "lastMessage") ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
             const applicationIDs = db.get(message.guild.id, "timeouts");
             if (applicationIDs) {
                 const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
-                games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < getTimeout(message.guild, game.applicationID) ? "✅" : (hasRole(member, "member") ? "⚠️" : "❔")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
+                games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < getTimeout(message.guild, game.applicationID) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
             }
         } else {
             result += `\n**undefined**`
@@ -275,14 +277,14 @@ function doReport(message) {
             let anyInactive = false;
             const lastOnline = getDaysAgo(data["lastOnline"]);
             anyActive |= lastOnline < timeoutLastOnline;
-            anyInactive |= lastOnline >= timeoutLastOnline;
+            anyInactive |= !lastOnline || lastOnline >= timeoutLastOnline;
             const lastMessage = getDaysAgo(data["lastMessage"]);
             anyActive |= lastMessage < timeoutLastMessage;
-            anyInactive |= lastMessage >= timeoutLastMessage;
+            anyInactive |= !lastMessage || lastMessage >= timeoutLastMessage;
             for (const game of games) {
                 const lastPlayed = getDaysAgo(data[game.applicationID]);
                 anyActive |= lastPlayed < game.timeout;
-                anyInactive |= lastPlayed >= game.timeout;
+                anyInactive |= !lastPlayed || lastPlayed >= game.timeout;
             }
             if (anyInactive) {
                 if (anyActive) {
@@ -757,15 +759,23 @@ function getTimeout(guild, key) {
 }
 
 function reply(message, content) {
-    message.reply(content)
+    message.reply(abbreviate(content, 2000 - 23))
         .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
         .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
 }
 
 function send(message, content) {
-    message.channel.send(content)
+    message.channel.send(abbreviate(content, 2000))
         .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
         .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+}
+
+function abbreviate(string, limit) {
+    if (limit && string.length > limit) {
+        return string.substring(0, limit - 4).trim() + ' ...'
+    } else {
+        return string
+    }
 }
 
 function onPresenceUpdate(oldMember, newMember) {
