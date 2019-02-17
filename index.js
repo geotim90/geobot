@@ -757,15 +757,23 @@ function getTimeout(guild, key) {
 }
 
 function reply(message, content) {
-    message.reply(content)
+    message.reply(abbreviate(content, 2000 - 23))
         .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
         .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
 }
 
 function send(message, content) {
-    message.channel.send(content)
+    message.channel.send(abbreviate(content, 2000))
         .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
         .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+}
+
+function abbreviate(string, limit) {
+    if (limit && string.length > limit) {
+        return string.substring(0, limit - 4).trim() + ' ...'
+    } else {
+        return string
+    }
 }
 
 function onPresenceUpdate(oldMember, newMember) {
