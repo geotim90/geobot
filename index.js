@@ -277,14 +277,14 @@ function doReport(message) {
             let anyInactive = false;
             const lastOnline = getDaysAgo(data["lastOnline"]);
             anyActive |= lastOnline < timeoutLastOnline;
-            anyInactive |= !lastOnline || lastOnline >= timeoutLastOnline;
+            anyInactive |= isNaN(lastOnline) || lastOnline >= timeoutLastOnline;
             const lastMessage = getDaysAgo(data["lastMessage"]);
             anyActive |= lastMessage < timeoutLastMessage;
-            anyInactive |= !lastMessage || lastMessage >= timeoutLastMessage;
+            anyInactive |= isNaN(lastMessage) || lastMessage >= timeoutLastMessage;
             for (const game of games) {
                 const lastPlayed = getDaysAgo(data[game.applicationID]);
                 anyActive |= lastPlayed < game.timeout;
-                anyInactive |= !lastPlayed || lastPlayed >= game.timeout;
+                anyInactive |= isNaN(lastPlayed) || lastPlayed >= game.timeout;
             }
             if (anyInactive) {
                 if (anyActive) {
