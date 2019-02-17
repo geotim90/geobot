@@ -145,7 +145,7 @@ function onMessage(message) {
         }
         // update activity
         updateLastMessage(message);
-        updateLastOnline(message.member)
+        updateLastOnline(message.member, true)
     }
 }
 
@@ -826,8 +826,8 @@ function updateLastMessage(message) {
     db.set(message.guild.id, message.createdTimestamp, `members.${message.author.id}.lastMessage`)
 }
 
-function updateLastOnline(member) {
-    if (member.presence.status === "online") {
+function updateLastOnline(member, performedAction = false) {
+    if (performedAction || member.presence.status === "online") {
         const now = new Date().getTime();
         log("update", `guild=${member.guild.id}|member=${member.id}`, "lastOnline", now);
         db.set(member.guild.id, now, `members.${member.id}.lastOnline`)
