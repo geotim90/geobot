@@ -155,6 +155,8 @@ function isRelevantMessage(message) {
         message.guild
         // ignore all bots
         && !message.author.bot
+        // check for devmode
+        && (!config.devmode || message.author.id === config.admin)
     )
 }
 
