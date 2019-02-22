@@ -252,11 +252,11 @@ function doReport(message) {
         const contribution = db.get(message.guild.id, `members.${member.id}.contribution`);
         const timeout = getTimeout(message.guild, "contribution");
         if (contribution) {
-            report1 += `\n✅ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+            report1 += `\n✅ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
         } else if (getDaysAgo(joined) < timeout) {
-            report2 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+            report2 += `\n⚠️ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
         } else {
-            report2 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(joined)}`
+            report2 += `\n❌ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
         }
     }
     const members = message.guild.members.filter(member => hasRole(member, "member"));
@@ -278,19 +278,25 @@ function doReport(message) {
             const lastOnline = getDaysAgo(data["lastOnline"]);
             anyActive |= lastOnline < timeoutLastOnline;
             anyInactive |= isNaN(lastOnline) || lastOnline >= timeoutLastOnline;
+            let minTimeout = {activity: "was last online", days: lastOnline};
+            let maxTimeout = {activity: "was last online", days: lastOnline};
             const lastMessage = getDaysAgo(data["lastMessage"]);
             anyActive |= lastMessage < timeoutLastMessage;
             anyInactive |= isNaN(lastMessage) || lastMessage >= timeoutLastMessage;
+            if (lastMessage < lastOnline) minTimeout = {activity: "last messaged", days: lastMessage};
+            if (lastMessage > lastOnline) maxTimeout = {activity: "last messaged", days: lastMessage};
             for (const game of games) {
                 const lastPlayed = getDaysAgo(data[game.applicationID]);
                 anyActive |= lastPlayed < game.timeout;
                 anyInactive |= isNaN(lastPlayed) || lastPlayed >= game.timeout;
+                if (lastPlayed < minTimeout.days) minTimeout = {activity: `last played **${game.name}** (${game.applicationID})`, days: lastPlayed};
+                if (lastPlayed > maxTimeout.days) maxTimeout = {activity: `last played **${game.name}** (${game.applicationID})`, days: lastPlayed};
             }
             if (anyInactive) {
                 if (anyActive) {
-                    report4 += `\n⚠️ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
+                    report4 += `\n⚠️ **${getName(member)}** (${member.id}) ${maxTimeout.activity} ${formatDaysAgo(maxTimeout.days)}`
                 } else {
-                    report3 += `\n❌ **${getName(member)}** (${member.id}) Joined: ${formatDaysAgo(data["joined"])}`
+                    report3 += `\n❌ **${getName(member)}** (${member.id}) ${minTimeout.activity} ${formatDaysAgo(minTimeout.days)}`
                 }
             }
         }
