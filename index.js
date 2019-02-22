@@ -278,25 +278,41 @@ function doReport(message) {
             const lastOnline = getDaysAgo(data["lastOnline"]);
             anyActive |= lastOnline < timeoutLastOnline;
             anyInactive |= isNaN(lastOnline) || lastOnline >= timeoutLastOnline;
-            let minTimeout = {activity: "was last online", days: lastOnline};
-            let maxTimeout = {activity: "was last online", days: lastOnline};
+            let minTimeout = {activity: "was last online", days: lastOnline, timestamp: data["lastMessage"]};
+            let maxTimeout = {activity: "was last online", days: lastOnline, timestamp: data["lastMessage"]};
             const lastMessage = getDaysAgo(data["lastMessage"]);
             anyActive |= lastMessage < timeoutLastMessage;
             anyInactive |= isNaN(lastMessage) || lastMessage >= timeoutLastMessage;
-            if (lastMessage < lastOnline) minTimeout = {activity: "last messaged", days: lastMessage};
-            if (lastMessage > lastOnline) maxTimeout = {activity: "last messaged", days: lastMessage};
+            if (lastMessage < lastOnline) minTimeout = {
+                activity: "last messaged",
+                days: lastMessage,
+                timestamp: data["lastMessage"]
+            };
+            if (lastMessage > lastOnline) maxTimeout = {
+                activity: "last messaged",
+                days: lastMessage,
+                timestamp: data["lastMessage"]
+            };
             for (const game of games) {
                 const lastPlayed = getDaysAgo(data[game.applicationID]);
                 anyActive |= lastPlayed < game.timeout;
                 anyInactive |= isNaN(lastPlayed) || lastPlayed >= game.timeout;
-                if (lastPlayed < minTimeout.days) minTimeout = {activity: `last played **${game.name}** (${game.applicationID})`, days: lastPlayed};
-                if (lastPlayed > maxTimeout.days) maxTimeout = {activity: `last played **${game.name}** (${game.applicationID})`, days: lastPlayed};
+                if (lastPlayed < minTimeout.days) minTimeout = {
+                    activity: `last played **${game.name}** (${game.applicationID})`,
+                    days: lastPlayed,
+                    timestamp: data[game.applicationID]
+                };
+                if (lastPlayed > maxTimeout.days) maxTimeout = {
+                    activity: `last played **${game.name}** (${game.applicationID})`,
+                    days: lastPlayed,
+                    timestamp: data[game.applicationID]
+                };
             }
             if (anyInactive) {
                 if (anyActive) {
-                    report4 += `\n⚠️ **${getName(member)}** (${member.id}) ${maxTimeout.activity} ${formatDaysAgo(maxTimeout.days)}`
+                    report4 += `\n⚠️ **${getName(member)}** (${member.id}) ${maxTimeout.activity} ${formatDaysAgo(maxTimeout.timestamp)}`
                 } else {
-                    report3 += `\n❌ **${getName(member)}** (${member.id}) ${minTimeout.activity} ${formatDaysAgo(minTimeout.days)}`
+                    report3 += `\n❌ **${getName(member)}** (${member.id}) ${minTimeout.activity} ${formatDaysAgo(minTimeout.timestamp)}`
                 }
             }
         }
