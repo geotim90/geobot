@@ -1,6 +1,6 @@
 {
     "name": "geobot",
-    "version": "1.0.42",
+    "version": "1.0.43",
     "description": "Guild activity monitor",
     "main": "index.js",
     "repository": {

@@ -30,9 +30,9 @@ There are four permission levels. If a user has no matching roles, *Geobot* will
 
 *Admins* can execute `@Geobot add role initiate $1` and `@Geobot remove role initiate $1` to manage which guild members are considered *initiates* based on their roles. *Admins* can execute `@Geobot get role initiate` to check which roles are configured. `$1` may be a role mention, role name or role ID.
 
-*Admins* can execute `@Geobot set timeout contribution $1` to configure how many days *initiates* have to *contribute*. *Admins* can execute `@Geobot get timeout contribution` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `14` (2 weeks).
+*Admins* can execute `@Geobot set timeout contribution $1` to configure how many days *initiates* have to *contribute*. *Mods* and *admins* can execute `@Geobot get timeout contribution` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `14` (2 weeks).
 
-*Admins* can execute `@Geobot set member joined $1 $2` to overwite when a guild member became an *initiate*. *Admins* can execute `@Geobot get member joined $1` to check when a guild member became an *initiate*. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
+*Admins* can execute `@Geobot set member joined $1 $2` to overwite when a guild member became an *initiate*. *Mods* and *admins* can execute `@Geobot get member joined $1` to check when a guild member became an *initiate*. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
 #### Member
 
@@ -40,17 +40,17 @@ There are four permission levels. If a user has no matching roles, *Geobot* will
 
 *Admins* can execute `@Geobot add role member $1` and `@Geobot remove role member $1` to manage which guild members are considered *members* based on their roles. *Admins* can execute `@Geobot get role member` to check which roles are configured. `$1` may be a role mention, role name or role ID.
 
-*Admins* can execute `@Geobot set timeout lastOnline $1` to configure how many days ago *members* need to have been online on Discord. *Admins* can execute `@Geobot get timeout lastOnline` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `60` (2 months).
+*Admins* can execute `@Geobot set timeout lastOnline $1` to configure how many days ago *members* need to have been online on Discord. *Mods* and *admins* can execute `@Geobot get timeout lastOnline` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `60` (2 months).
 
-*Admins* can execute `@Geobot set timeout lastMessage $1` to configure how many days ago *members* need to have posted messages in channels *Geobot* can read messages in.  *Admins* can execute `@Geobot get timeout lastMessage` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `60` (2 months).
+*Admins* can execute `@Geobot set timeout lastMessage $1` to configure how many days ago *members* need to have posted messages in channels *Geobot* can read messages in.  *Mods* and *admins* can execute `@Geobot get timeout lastMessage` to check how this setting is currently configured. `$1` must be a positive integer between `1` (1 day) and `365` (1 year). The default value is `60` (2 months).
 
-*Admins* can execute `@Geobot set game timeout $1 $2` to configure how many days ago *members* need to have played a certain game. *Admins* can execute `@Geobot unset game timeout $1` to remove a game from the configuration. *Admins* can execute `@Geobot get game timeout $1` to check how this setting is currently configured. `$1` may a game name or application ID. `$2` must be a positive integer between `1` (1 day) and `365` (1 year). No games are monitored by default.
+*Admins* can execute `@Geobot set game timeout $1 $2` to configure how many days ago *members* need to have played a certain game. *Admins* can execute `@Geobot unset game timeout $1` to remove a game from the configuration. *Mods* and *admins* can execute `@Geobot get game timeout $1` to check how this setting is currently configured. `$1` may a game name or application ID. `$2` must be a positive integer between `1` (1 day) and `365` (1 year). No games are monitored by default.
 
-*Admins* can execute `@Geobot set member lastOnline $1 $2` to overwite when a guild member was last online. *Admins* can execute `@Geobot get member lastOnline $1` to check when a guild member was last online. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
+*Admins* can execute `@Geobot set member lastOnline $1 $2` to overwite when a guild member was last online. *Mods* and *admins* can execute `@Geobot get member lastOnline $1` to check when a guild member was last online. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
-*Admins* can execute `@Geobot set member lastMessage $1 $2` to overwite when a guild member last posted a message. *Admins* can execute `@Geobot get member lastMessage $1` to check when a guild member last posted a message. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
+*Admins* can execute `@Geobot set member lastMessage $1 $2` to overwite when a guild member last posted a message. *Mods* and *admins* can execute `@Geobot get member lastMessage $1` to check when a guild member last posted a message. `$1` may be a user mention, user name or user ID. `$2` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
-*Admins* can execute `@Geobot set member lastPlayed $1 $2 $3` to overwite when a guild member last played a certain game. *Admins* can execute `@Geobot get member lastPlayed $1 $2` to check when a guild member last played a certain game. `$1` may be a user mention, user name or user ID. `$2` may a game name or application ID. `$3` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
+*Admins* can execute `@Geobot set member lastPlayed $1 $2 $3` to overwite when a guild member last played a certain game. *Mods* and *admins* can execute `@Geobot get member lastPlayed $1 $2` to check when a guild member last played a certain game. `$1` may be a user mention, user name or user ID. `$2` may a game name or application ID. `$3` must be an ISO 8601 compliant UTC date or timestamp (e.g. `1999-12-31` or `1999-12-31T23:59:59.999Z`).
 
 #### Mod
 
@@ -60,7 +60,7 @@ There are four permission levels. If a user has no matching roles, *Geobot* will
 
 #### Admin
 
-*Admins* can execute any bot commands. The guild owner will ALWAYS be an *admin*, as well as the bot superadmin (*Geotim* if using the invite link above).
+*Admins* can execute all bot commands. The guild owner will __always__ be an *admin*, as well as the bot superadmin (*Geotim* if using the invite link above).
 
 *Admins* can execute `@Geobot add role admin $1` and `@Geobot remove role admin $1` to manage which guild members are considered *admins* based on their roles. *Admins* can execute `@Geobot get role admin` to check which roles are configured. `$1` may be a role mention, role name or role ID.
 

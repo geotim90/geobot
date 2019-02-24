@@ -68,8 +68,7 @@ const LAST_PLAYED = /^lastPlayed\b/i;
 function onMessage(message) {
     if (isRelevantMessage(message)) {
         log("event", `guild=${message.guild.id}|message=${message.id}`, "message");
-        if (isBotCommand(message) && isBotCommandChannel(message) && isAuthorModOrAdmin(message)) {
-            const admin = isAuthorAdmin(message);
+        if (isBotCommand(message) && isBotCommandChannel(message) && isModOrAdmin(message.member)) {
             // extract cmd and args from message
             const cmd = message.content.substring(message.content.indexOf('>') + 1).trim();
             const args = cmd.split(/\s+/g);
@@ -86,58 +85,54 @@ function onMessage(message) {
                     onSetContribution(message, args[2])
                 } else if (GET.test(args[0])) {
                     onGetContribution(message, args[2])
-                } else if (admin && UNSET.test(args[0])) {
+                } else if (UNSET.test(args[0])) {
                     onUnsetContribution(message, args[2])
                 } else {
                     onHelp(message, args[1])
                 }
-            } else if (admin) {
-                if (ROLE.test(args[1])) {
-                    if (ADD.test(args[0])) {
-                        onAddRole(message, args[2], args[3])
-                    } else if (REMOVE.test(args[0])) {
-                        onRemoveRole(message, args[2], args[3])
-                    } else if (GET.test(args[0])) {
-                        onGetRole(message, args[2], args[3])
-                    } else {
-                        onHelp(message, args[1])
-                    }
-                } else if (TIMEOUT.test(args[1])) {
+            } else if (ROLE.test(args[1])) {
+                if (ADD.test(args[0])) {
+                    onAddRole(message, args[2], args[3])
+                } else if (REMOVE.test(args[0])) {
+                    onRemoveRole(message, args[2], args[3])
+                } else if (GET.test(args[0])) {
+                    onGetRole(message, args[2], args[3])
+                } else {
+                    onHelp(message, args[1])
+                }
+            } else if (TIMEOUT.test(args[1])) {
+                if (SET.test(args[0])) {
+                    onSetTimeout(message, args[2], args[3])
+                } else if (UNSET.test(args[0])) {
+                    onUnsetTimeout(message, args[2])
+                } else if (GET.test(args[0])) {
+                    onGetTimeout(message, args[2])
+                } else {
+                    onHelp(message, args[1])
+                }
+            } else if (MEMBER.test(args[1])) {
+                if (SET.test(args[0])) {
+                    onSetMember(message, args[2], args[3], args[4], args[5])
+                } else if (UNSET.test(args[0])) {
+                    onUnsetMember(message, args[2], args[3], args[4])
+                } else if (GET.test(args[0])) {
+                    onGetMember(message, args[2], args[3], args[4])
+                } else {
+                    onHelp(message, args[1])
+                }
+            } else if (GAME.test(args[1])) {
+                if (TIMEOUT.test(args[2])) {
                     if (SET.test(args[0])) {
-                        onSetTimeout(message, args[2], args[3])
+                        onSetGameTimeout(message, args[3], args[4])
                     } else if (UNSET.test(args[0])) {
-                        onUnsetTimeout(message, args[2])
+                        onUnsetGameTimeout(message, args[3])
                     } else if (GET.test(args[0])) {
-                        onGetTimeout(message, args[2])
-                    } else {
-                        onHelp(message, args[1])
-                    }
-                } else if (MEMBER.test(args[1])) {
-                    if (SET.test(args[0])) {
-                        onSetMember(message, args[2], args[3], args[4], args[5])
-                    } else if (UNSET.test(args[0])) {
-                        onUnsetMember(message, args[2], args[3], args[4])
-                    } else if (GET.test(args[0])) {
-                        onGetMember(message, args[2], args[3], args[4])
-                    } else {
-                        onHelp(message, args[1])
-                    }
-                } else if (GAME.test(args[1])) {
-                    if (TIMEOUT.test(args[2])) {
-                        if (SET.test(args[0])) {
-                            onSetGameTimeout(message, args[3], args[4])
-                        } else if (UNSET.test(args[0])) {
-                            onUnsetGameTimeout(message, args[3])
-                        } else if (GET.test(args[0])) {
-                            onGetGameTimeout(message, args[3])
-                        } else {
-                            onHelp(message, args[1])
-                        }
+                        onGetGameTimeout(message, args[3])
                     } else {
                         onHelp(message, args[1])
                     }
                 } else {
-                    onHelp(message, cmd)
+                    onHelp(message, args[1])
                 }
             } else {
                 onHelp(message, cmd)
@@ -176,13 +171,13 @@ function isBotCommandChannel(message) {
     )
 }
 
-function isAuthorModOrAdmin(message) {
-    return hasRole(message.member, "mod")
-        || hasRole(message.member, "admin")
+function isModOrAdmin(member) {
+    return hasRole(member, "mod")
+        || hasRole(member, "admin")
 }
 
-function isAuthorAdmin(message) {
-    return hasRole(message.member, "admin")
+function isAdmin(member) {
+    return hasRole(member, "admin")
 }
 
 function hasRole(member, key) {
@@ -347,7 +342,9 @@ function doGetContribution(message, member) {
 }
 
 function onUnsetContribution(message, member) {
-    doUnsetContribution(message, getMember(message, member))
+    if (requireAdmin(message)) {
+        doUnsetContribution(message, getMember(message, member))
+    }
 }
 
 function doUnsetContribution(message, member) {
@@ -358,7 +355,9 @@ function doUnsetContribution(message, member) {
 }
 
 function onAddRole(message, key, role) {
-    doAddRole(message, getRoleKey(message, key), getRole(message, role))
+    if (requireAdmin(message)) {
+        doAddRole(message, getRoleKey(message, key), getRole(message, role))
+    }
 }
 
 function doAddRole(message, key, role) {
@@ -375,7 +374,9 @@ function doAddRole(message, key, role) {
 }
 
 function onRemoveRole(message, key, role) {
-    doRemoveRole(message, getRoleKey(message, key), getRole(message, role))
+    if (requireAdmin(message)) {
+        doRemoveRole(message, getRoleKey(message, key), getRole(message, role))
+    }
 }
 
 function doRemoveRole(message, key, role) {
@@ -386,7 +387,9 @@ function doRemoveRole(message, key, role) {
 }
 
 function onGetRole(message, key) {
-    doGetRole(message, getRoleKey(message, key))
+    if (requireAdmin(message)) {
+        doGetRole(message, getRoleKey(message, key))
+    }
 }
 
 function doGetRole(message, key) {
@@ -405,7 +408,9 @@ function doGetRole(message, key) {
 }
 
 function onSetTimeout(message, key, days) {
-    doSetTimeout(message, getTimeoutKey(message, key), getDays(message, days))
+    if (requireAdmin(message)) {
+        doSetTimeout(message, getTimeoutKey(message, key), getDays(message, days))
+    }
 }
 
 function doSetTimeout(message, key, days) {
@@ -416,7 +421,9 @@ function doSetTimeout(message, key, days) {
 }
 
 function onUnsetTimeout(message, key) {
-    doUnsetTimeout(message, getTimeoutKey(message, key))
+    if (requireAdmin(message)) {
+        doUnsetTimeout(message, getTimeoutKey(message, key))
+    }
 }
 
 function doUnsetTimeout(message, key) {
@@ -456,10 +463,12 @@ function doGetTimeoutAll(message) {
 }
 
 function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
-    if (LAST_PLAYED.test(key)) {
-        doSetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, gameOrTimestamp), getTimestamp(message, timestamp))
-    } else {
-        doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, gameOrTimestamp))
+    if (requireAdmin(message)) {
+        if (LAST_PLAYED.test(key)) {
+            doSetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, gameOrTimestamp), getTimestamp(message, timestamp))
+        } else {
+            doSetMember(message, getMemberKey(message, key), getMember(message, member), getTimestamp(message, gameOrTimestamp))
+        }
     }
 }
 
@@ -478,10 +487,12 @@ function doSetMember(message, key, member, timestamp) {
 }
 
 function onUnsetMember(message, key, member, game) {
-    if (LAST_PLAYED.test(key)) {
-        doUnsetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, game))
-    } else {
-        doUnsetMember(message, getMemberKey(message, key), getMember(message, member))
+    if (requireAdmin(message)) {
+        if (LAST_PLAYED.test(key)) {
+            doUnsetMemberGame(message, getMemberKey(message, key), getMember(message, member), getGame(message, game))
+        } else {
+            doUnsetMember(message, getMemberKey(message, key), getMember(message, member))
+        }
     }
 }
 
@@ -522,7 +533,9 @@ function doGetMember(message, key, member) {
 }
 
 function onSetGameTimeout(message, game, days) {
-    doSetGameTimeout(message, getGame(message, game), getDays(message, days))
+    if (requireAdmin(message)) {
+        doSetGameTimeout(message, getGame(message, game), getDays(message, days))
+    }
 }
 
 function doSetGameTimeout(message, game, days) {
@@ -533,7 +546,9 @@ function doSetGameTimeout(message, game, days) {
 }
 
 function onUnsetGameTimeout(message, game) {
-    doUnsetGameTimeout(message, getGame(message, game))
+    if (requireAdmin(message)) {
+        doUnsetGameTimeout(message, getGame(message, game))
+    }
 }
 
 function doUnsetGameTimeout(message, game) {
@@ -577,6 +592,15 @@ function doGetGameTimeoutAll(message) {
         }
     } else {
         reply(message, `timeout for **lastPlayed** is **undefined**`)
+    }
+}
+
+function requireAdmin(message) {
+    if (isAdmin(message.member)) {
+        return true
+    } else {
+        reply(message, "you do not have permission to use this command 😟");
+        return false
     }
 }
 
