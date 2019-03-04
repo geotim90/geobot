@@ -224,12 +224,12 @@ function doReportMember(message, member) {
         if (data) {
             result += `\n${data["joined"] ? "✅" : (hasRole(member, "initiate") ? "❌" : "⚠️")} Joined: ${formatDaysAgo(data["joined"])}`;
             result += `\n${data["contribution"] ? "✅" : (!hasRole(member, "initiate") || getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
-            result += `\n${getDaysAgo(data["lastOnline"]) < getTimeout(message.guild, "lastOnline") ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
-            result += `\n${getDaysAgo(data["lastMessage"]) < getTimeout(message.guild, "lastMessage") ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
+            result += `\n${getDaysAgo(data["lastOnline"]) < (getTimeout(message.guild, "lastOnline") || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
+            result += `\n${getDaysAgo(data["lastMessage"]) < (getTimeout(message.guild, "lastMessage") || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
             const applicationIDs = db.get(message.guild.id, "timeouts");
             if (applicationIDs) {
                 const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
-                games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < getTimeout(message.guild, game.applicationID) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
+                games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < (getTimeout(message.guild, game.applicationID) || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
             }
         } else {
             result += `\n**undefined**`
@@ -270,38 +270,46 @@ function doReport(message) {
         if (data) {
             let anyActive = false;
             let anyInactive = false;
-            const lastOnline = getDaysAgo(data["lastOnline"]);
-            anyActive |= lastOnline < timeoutLastOnline;
-            anyInactive |= isNaN(lastOnline) || lastOnline >= timeoutLastOnline;
-            let minTimeout = {activity: "was last online", days: lastOnline, timestamp: data["lastMessage"]};
-            let maxTimeout = {activity: "was last online", days: lastOnline, timestamp: data["lastMessage"]};
-            const lastMessage = getDaysAgo(data["lastMessage"]);
-            anyActive |= lastMessage < timeoutLastMessage;
-            anyInactive |= isNaN(lastMessage) || lastMessage >= timeoutLastMessage;
-            if (lastMessage < lastOnline) minTimeout = {
-                activity: "last messaged",
-                days: lastMessage,
-                timestamp: data["lastMessage"]
-            };
-            if (lastMessage > lastOnline) maxTimeout = {
-                activity: "last messaged",
-                days: lastMessage,
-                timestamp: data["lastMessage"]
-            };
+            let minTimeout = {};
+            let maxTimeout = {};
+            if (timeoutLastOnline) {
+                const lastOnline = getDaysAgo(data["lastOnline"]);
+                anyActive |= lastOnline < timeoutLastOnline;
+                anyInactive |= isNaN(lastOnline) || lastOnline >= timeoutLastOnline;
+                minTimeout = {activity: "was last online", days: lastOnline, timestamp: data["lastOnline"]};
+                maxTimeout = {activity: "was last online", days: lastOnline, timestamp: data["lastOnline"]};
+            }
+            if (timeoutLastMessage) {
+                const lastMessage = getDaysAgo(data["lastMessage"]);
+                anyActive |= lastMessage < timeoutLastMessage;
+                anyInactive |= isNaN(lastMessage) || lastMessage >= timeoutLastMessage;
+                if (lastMessage < (minTimeout.days || Infinity)) minTimeout = {
+                    activity: "last messaged",
+                    days: lastMessage,
+                    timestamp: data["lastMessage"]
+                };
+                if (lastMessage > (maxTimeout.days || -Infinity)) maxTimeout = {
+                    activity: "last messaged",
+                    days: lastMessage,
+                    timestamp: data["lastMessage"]
+                };
+            }
             for (const game of games) {
-                const lastPlayed = getDaysAgo(data[game.applicationID]);
-                anyActive |= lastPlayed < game.timeout;
-                anyInactive |= isNaN(lastPlayed) || lastPlayed >= game.timeout;
-                if (lastPlayed < minTimeout.days) minTimeout = {
-                    activity: `last played **${game.name}** (${game.applicationID})`,
-                    days: lastPlayed,
-                    timestamp: data[game.applicationID]
-                };
-                if (lastPlayed > maxTimeout.days) maxTimeout = {
-                    activity: `last played **${game.name}** (${game.applicationID})`,
-                    days: lastPlayed,
-                    timestamp: data[game.applicationID]
-                };
+                if (game.timeout) {
+                    const lastPlayed = getDaysAgo(data[game.applicationID]);
+                    anyActive |= lastPlayed < game.timeout;
+                    anyInactive |= isNaN(lastPlayed) || lastPlayed >= game.timeout;
+                    if (lastPlayed < (minTimeout.days || Infinity)) minTimeout = {
+                        activity: `last played **${game.name}** (${game.applicationID})`,
+                        days: lastPlayed,
+                        timestamp: data[game.applicationID]
+                    };
+                    if (lastPlayed > (maxTimeout.days || -Infinity)) maxTimeout = {
+                        activity: `last played **${game.name}** (${game.applicationID})`,
+                        days: lastPlayed,
+                        timestamp: data[game.applicationID]
+                    };
+                }
             }
             if (anyInactive) {
                 if (anyActive) {
@@ -809,15 +817,27 @@ function getTimeout(guild, key) {
 }
 
 function reply(message, content) {
-    message.reply(abbreviate(content, 2000 - 23))
-        .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
-        .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+    if (config.devmode) {
+        message.author.send(abbreviate(content, 2000 - 23))
+            .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
+            .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+    } else {
+        message.reply(abbreviate(content, 2000 - 23))
+            .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
+            .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+    }
 }
 
 function send(message, content) {
-    message.channel.send(abbreviate(content, 2000))
-        .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
-        .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+    if (config.devmode) {
+        message.author.send(abbreviate(content, 2000))
+            .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
+            .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+    } else {
+        message.channel.send(abbreviate(content, 2000))
+            .then(out => log("reply", `guild=${message.guild.id}|message=${message.id}`, `with message ${out.id}`, JSON.stringify(out.content)))
+            .catch(error => log("reply", `guild=${message.guild.id}|message=${message.id}`, "[ERROR]", error.message))
+    }
 }
 
 function abbreviate(string, limit) {
