@@ -88,7 +88,7 @@ The following sections are only relevant for developers of the bot itself.
 ### Database
 
 ```js
-{
+enmap = {
     "games": {
         "${applicationID}": "${name}",
         ...
@@ -105,7 +105,8 @@ The following sections are only relevant for developers of the bot itself.
             "contribution": 14,
             "lastOnline": 60,
             "lastMessage": 60,
-            "${applicationID}": 60
+            "${applicationID}": 60,
+            ...
         },
         "members": {
             "${member.id}": {
@@ -113,7 +114,18 @@ The following sections are only relevant for developers of the bot itself.
                 "contribution": false,
                 "lastOnline": "${timestamp}",
                 "lastMessage": "${timestamp}",
-                "${applicationID}": "${timestamp}"
+                "${applicationID}": "${timestamp}",
+                ...,
+                "notes": [
+                	{
+                	    "author": "${message.author.id}",
+                	    "scope": "${(private|public|shared)}",
+                	    "message": "${message.id}",
+                	    "timestamp": "${message.createdTimestamp}",
+                	    "content": "..."
+	                },
+	                ...
+                ]
             },
             ...
         }
