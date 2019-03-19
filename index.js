@@ -55,6 +55,8 @@ const ROLE = /^role\b/i;
 const ADD = /^add\b/i;
 const REMOVE = /^remove\b/i;
 const TIMEOUT = /^timeout\b/i;
+const NOTE = /^note\b/i;
+const ALL = /^all\b/i;
 const MEMBER = /^member\b/i;
 const GAME = /^game\b/i;
 const INITIATE = /^initiate\b/i;
@@ -64,6 +66,9 @@ const JOINED = /^joined\b/i;
 const LAST_ONLINE = /^lastOnline\b/i;
 const LAST_MESSAGE = /^lastMessage\b/i;
 const LAST_PLAYED = /^lastPlayed\b/i;
+const PRIVATE = /^private\b/i;
+const PUBLIC = /^public\b/i;
+const SHARED = /^shared\b/i;
 
 function onMessage(message) {
     if (isRelevantMessage(message)) {
@@ -109,6 +114,18 @@ function onMessage(message) {
                     onGetTimeout(message, args[2])
                 } else {
                     onHelp(message, args[1])
+                }
+            } else if (NOTE.test(args[3])) {
+                if (ADD.test(args[0])) {
+                    onAddNote(message, args[2], args[4], args.slice(5).join(' '))
+                } else if (REMOVE.test(args[0])) {
+                    onRemoveNote(message, args[2], args[4], args[5])
+                } else if (GET.test(args[0]) && MEMBER.test(args[1])) {
+                    onGetNote(message, args[2], args[4])
+                } else if (GET.test(args[0]) && ALL.test(args[1])) {
+                    onGetAllNote(message, args[2], args.slice(5).join(' '))
+                } else {
+                    onHelp(message, args[3]);
                 }
             } else if (MEMBER.test(args[1])) {
                 if (SET.test(args[0])) {
@@ -470,6 +487,48 @@ function doGetTimeoutAll(message) {
         + `for **lastMessage** is **${daysLastMessage ? daysLastMessage + " days" : "undefined"}**`)
 }
 
+function onAddNote(message, scope, member, content) {
+    doAddNote(message, getScope(message, scope), getMember(message, member), sanitizeInput(content))
+}
+
+function doAddNote(message, scope, member, content) {
+    if (!content) {
+        reply(message, 'you did not provide any content for the note 😟')
+    } else if (scope && member) {
+        // FIXME implement
+    }
+}
+
+function onRemoveNote(message, scope, member, messageOrTimestamp) {
+    doRemoveNote(message, getScope(message, scope), getMember(message, member), getIdOrTimestamp(message, messageOrTimestamp))
+}
+
+function doRemoveNote(message, scope, member, messageOrTimestamp) {
+    if (scope && member && messageOrTimestamp) {
+        // FIXME implement
+    }
+}
+
+function onGetNote(message, scope, member) {
+    doGetNote(message, getScope(message, scope), getMember(message, member))
+}
+
+function doGetNote(message, scope, member) {
+    if (scope && member) {
+        // FIXME implement
+    }
+}
+
+function onGetAllNote(message, scope, term) {
+    doGetAllNote(message, getScope(message, scope), sanitizeInput(term))
+}
+
+function doGetAllNote(message, scope, term) {
+    if (scope) {
+        // FIXME implement
+    }
+}
+
 function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
     if (requireAdmin(message)) {
         if (LAST_PLAYED.test(key)) {
@@ -699,6 +758,19 @@ function getRole(message, input) {
     }
 }
 
+function getScope(message, input) {
+    if (PRIVATE.test(input)) {
+        return "private"
+    } else if (SHARED.test(input)) {
+        return "shared"
+    } else if (PUBLIC.test(input)) {
+        return "public"
+    } else {
+        reply(message, "you did not specify one of `private`, `shared` or `public` 😟");
+        return false
+    }
+}
+
 function getTimeoutKey(message, input) {
     if (CONTRIBUTION.test(input)) {
         return "contribution"
@@ -846,6 +918,10 @@ function abbreviate(string, limit) {
     } else {
         return string
     }
+}
+
+function sanitizeInput(input) {
+    return input ? Discord.Util.escapeMarkdown(input) : input;
 }
 
 function onPresenceUpdate(oldMember, newMember) {
