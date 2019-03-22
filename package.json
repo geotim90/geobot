@@ -1,6 +1,6 @@
 {
     "name": "geobot",
-    "version": "1.0.45",
+    "version": "1.0.47",
     "description": "Guild activity monitor",
     "main": "index.js",
     "repository": {
@@ -10,7 +10,7 @@
     "author": "Geotim",
     "license": "Apache-2.0",
     "dependencies": {
-        "better-sqlite-pool": "^0.2.0",
+        "better-sqlite-pool": "^0.2.2",
         "discord.js": "^11.4.2",
         "enmap": "^4.7.1"
     }
