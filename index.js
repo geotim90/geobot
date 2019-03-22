@@ -1,27 +1,11 @@
 const config = require("./config.json");
 
-const Discord = require("discord.js");
-const Enmap = require("enmap");
+const {log} = require("./log.js");
+const {db_get, db_set, db_delete, db_has, db_push, db_remove} = require("./data.js");
 
 // initialize Discord client
+const Discord = require("discord.js");
 const client = new Discord.Client();
-
-// initialize Enmap database
-const db = new Enmap({
-    name: "geobot",
-    fetchAll: false,
-    autoFetch: true,
-    cloneLevel: "deep"
-});
-
-// logger
-function log(type, context, message, obj) {
-    if (context) {
-        console.log(`${new Date().toISOString()} [${type.toUpperCase()}] {${context}} ${message}`, obj ? obj : "")
-    } else {
-        console.log(`${new Date().toISOString()} [${type.toUpperCase()}] ${message}`, obj ? obj : "")
-    }
-}
 
 // track bot health
 client.on("debug", info => log("health", false, "[DEBUG]", info));
@@ -191,7 +175,7 @@ function hasRole(member, key) {
             return true
         }
     }
-    const roles = db.get(member.guild.id, `roles.${key}`);
+    const roles = db_get(member.guild.id, `roles.${key}`);
     return roles && roles.find(role => member.roles.has(role))
 }
 
@@ -213,7 +197,7 @@ function onReport(message, member) {
 
 function doReportMember(message, member) {
     if (member) {
-        const data = db.get(message.guild.id, `members.${member.id}`);
+        const data = db_get(message.guild.id, `members.${member.id}`);
         let result = `this is what I have on **${getName(member)}** (${member.id})`;
         result += `\n\n__**Roles**__`;
         result += `\n${hasRole(member, "initiate") ? "✅" : "❌"} Initiate`;
@@ -226,7 +210,7 @@ function doReportMember(message, member) {
             result += `\n${data["contribution"] ? "✅" : (!hasRole(member, "initiate") || getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
             result += `\n${getDaysAgo(data["lastOnline"]) < (getTimeout(message.guild, "lastOnline") || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last online: ${formatDaysAgo(data["lastOnline"])}`;
             result += `\n${getDaysAgo(data["lastMessage"]) < (getTimeout(message.guild, "lastMessage") || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last message: ${formatDaysAgo(data["lastMessage"])}`;
-            const applicationIDs = db.get(message.guild.id, "timeouts");
+            const applicationIDs = db_get(message.guild.id, "timeouts");
             if (applicationIDs) {
                 const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
                 games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < (getTimeout(message.guild, game.applicationID) || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
@@ -243,8 +227,8 @@ function doReport(message) {
     let report1 = "__**Initiates that have made a contribution**__";
     let report2 = "__**Initiates that have not made a contribution**__";
     for (const member of initiates.values()) {
-        const joined = db.get(message.guild.id, `members.${member.id}.joined`);
-        const contribution = db.get(message.guild.id, `members.${member.id}.contribution`);
+        const joined = db_get(message.guild.id, `members.${member.id}.joined`);
+        const contribution = db_get(message.guild.id, `members.${member.id}.contribution`);
         const timeout = getTimeout(message.guild, "contribution");
         if (contribution) {
             report1 += `\n✅ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
@@ -257,7 +241,7 @@ function doReport(message) {
     const members = message.guild.members.filter(member => hasRole(member, "member"));
     const timeoutLastOnline = getTimeout(message.guild, "lastOnline");
     const timeoutLastMessage = getTimeout(message.guild, "lastMessage");
-    const games = Object.keys(db.get(message.guild.id, "timeouts") || {})
+    const games = Object.keys(db_get(message.guild.id, "timeouts") || {})
         .filter(applicationID => /^\d+$/.test(applicationID))
         .map(applicationID => ({
             ...getGame(message, applicationID),
@@ -266,7 +250,7 @@ function doReport(message) {
     let report3 = "__**Members that are completely inactive**__";
     let report4 = "__**Members that are partially inactive**__";
     for (const member of members.values()) {
-        const data = db.get(message.guild.id, `members.${member.id}`);
+        const data = db_get(message.guild.id, `members.${member.id}`);
         if (data) {
             let anyActive = false;
             let anyInactive = false;
@@ -329,7 +313,7 @@ function onSetContribution(message, member) {
 
 function doSetContribution(message, member) {
     if (member) {
-        db.set(message.guild.id, true, `members.${member.id}.contribution`);
+        db_set(message.guild.id, true, `members.${member.id}.contribution`);
         reply(message, `set contribution for **${getName(member)}** (${member.id})`)
     }
 }
@@ -340,7 +324,7 @@ function onGetContribution(message, member) {
 
 function doGetContribution(message, member) {
     if (member) {
-        const contribution = db.get(message.guild.id, `members.${member.id}.contribution`);
+        const contribution = db_get(message.guild.id, `members.${member.id}.contribution`);
         if (contribution === true) {
             reply(message, `**${getName(member)}** (${member.id}) has made a contribution 🎉`)
         } else {
@@ -357,7 +341,7 @@ function onUnsetContribution(message, member) {
 
 function doUnsetContribution(message, member) {
     if (member) {
-        db.delete(message.guild.id, `members.${member.id}.contribution`);
+        db_delete(message.guild.id, `members.${member.id}.contribution`);
         reply(message, `removed contribution for **${getName(member)}** (${member.id})`)
     }
 }
@@ -370,10 +354,10 @@ function onAddRole(message, key, role) {
 
 function doAddRole(message, key, role) {
     if (key && role) {
-        if (!db.has(message.guild.id, `roles.${key}`)) {
-            db.set(message.guild.id, [], `roles.${key}`)
+        if (!db_has(message.guild.id, `roles.${key}`)) {
+            db_set(message.guild.id, [], `roles.${key}`)
         }
-        db.push(message.guild.id, role.id, `roles.${key}`);
+        db_push(message.guild.id, role.id, `roles.${key}`);
         reply(message, `added **${key}** role **${role.name}** (${role.id})`);
         if (key === "initiate") {
             role.members.forEach(updateJoined)
@@ -389,7 +373,7 @@ function onRemoveRole(message, key, role) {
 
 function doRemoveRole(message, key, role) {
     if (key && role) {
-        db.remove(message.guild.id, role.id, `roles.${key}`);
+        db_remove(message.guild.id, role.id, `roles.${key}`);
         reply(message, `removed **${key}** role **${role.name}** (${role.id})`)
     }
 }
@@ -402,7 +386,7 @@ function onGetRole(message, key) {
 
 function doGetRole(message, key) {
     if (key) {
-        const roles = db.get(message.guild.id, `roles.${key}`);
+        const roles = db_get(message.guild.id, `roles.${key}`);
         if (!roles || roles.length === 0) {
             reply(message, `no roles are assigned to **${key}**`)
         } else {
@@ -423,7 +407,7 @@ function onSetTimeout(message, key, days) {
 
 function doSetTimeout(message, key, days) {
     if (key && days) {
-        db.set(message.guild.id, days, `timeouts.${key}`);
+        db_set(message.guild.id, days, `timeouts.${key}`);
         reply(message, `set timeout for **${key}** to **${days} days**`)
     }
 }
@@ -436,7 +420,7 @@ function onUnsetTimeout(message, key) {
 
 function doUnsetTimeout(message, key) {
     if (key) {
-        db.delete(message.guild.id, `timeouts.${key}`);
+        db_delete(message.guild.id, `timeouts.${key}`);
         reply(message, `removed timeout for **${key}**`)
     }
 }
@@ -452,7 +436,7 @@ function onGetTimeout(message, key) {
 
 function doGetTimeout(message, key) {
     if (key) {
-        const days = db.get(message.guild.id, `timeouts.${key}`);
+        const days = db_get(message.guild.id, `timeouts.${key}`);
         if (days) {
             reply(message, `timeout for **${key}** is **${days} days**`)
         } else {
@@ -462,9 +446,9 @@ function doGetTimeout(message, key) {
 }
 
 function doGetTimeoutAll(message) {
-    const daysContribution = db.get(message.guild.id, "timeouts.contribution");
-    const daysLastOnline = db.get(message.guild.id, "timeouts.lastOnline");
-    const daysLastMessage = db.get(message.guild.id, "timeouts.lastMessage");
+    const daysContribution = db_get(message.guild.id, "timeouts.contribution");
+    const daysLastOnline = db_get(message.guild.id, "timeouts.lastOnline");
+    const daysLastMessage = db_get(message.guild.id, "timeouts.lastMessage");
     reply(message, `timeout for **contribution** is **${daysContribution ? daysContribution + " days" : "undefined"}**, `
         + `for **lastOnline** is **${daysLastOnline ? daysLastOnline + " days" : "undefined"}**, `
         + `for **lastMessage** is **${daysLastMessage ? daysLastMessage + " days" : "undefined"}**`)
@@ -482,14 +466,14 @@ function onSetMember(message, key, member, gameOrTimestamp, timestamp) {
 
 function doSetMemberGame(message, key, member, game, timestamp) {
     if (key && member && game && timestamp) {
-        db.set(message.guild.id, timestamp, `members.${member.id}.${game.applicationID}`);
+        db_set(message.guild.id, timestamp, `members.${member.id}.${game.applicationID}`);
         reply(message, `set **${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) to **${formatTimestamp(timestamp)}**`)
     }
 }
 
 function doSetMember(message, key, member, timestamp) {
     if (key && member && timestamp) {
-        db.set(message.guild.id, timestamp, `members.${member.id}.${key}`);
+        db_set(message.guild.id, timestamp, `members.${member.id}.${key}`);
         reply(message, `set **${key}** for **${getName(member)}** (${member.id}) to **${formatTimestamp(timestamp)}**`)
     }
 }
@@ -506,14 +490,14 @@ function onUnsetMember(message, key, member, game) {
 
 function doUnsetMemberGame(message, key, member, game) {
     if (key && member && game) {
-        db.delete(message.guild.id, `members.${member.id}.${game.applicationID}`);
+        db_delete(message.guild.id, `members.${member.id}.${game.applicationID}`);
         reply(message, `removed **${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID})`)
     }
 }
 
 function doUnsetMember(message, key, member) {
     if (key && member) {
-        db.delete(message.guild.id, `members.${member.id}.${key}`);
+        db_delete(message.guild.id, `members.${member.id}.${key}`);
         reply(message, `removed **${key}** for **${getName(member)}** (${member.id})`)
     }
 }
@@ -528,14 +512,14 @@ function onGetMember(message, key, member, game) {
 
 function doGetMemberGame(message, key, member, game) {
     if (key && member && game) {
-        const timestamp = db.get(message.guild.id, `members.${member.id}.${game.applicationID}`);
+        const timestamp = db_get(message.guild.id, `members.${member.id}.${game.applicationID}`);
         reply(message, `**${key}** for **${getName(member)}** (${member.id}) in **${game.name}** (${game.applicationID}) is **${formatTimestamp(timestamp)}**`)
     }
 }
 
 function doGetMember(message, key, member) {
     if (key && member) {
-        const timestamp = db.get(message.guild.id, `members.${member.id}.${key}`);
+        const timestamp = db_get(message.guild.id, `members.${member.id}.${key}`);
         reply(message, `**${key}** for **${getName(member)}** (${member.id}) is **${formatTimestamp(timestamp)}**`)
     }
 }
@@ -548,7 +532,7 @@ function onSetGameTimeout(message, game, days) {
 
 function doSetGameTimeout(message, game, days) {
     if (game && days) {
-        db.set(message.guild.id, days, `timeouts.${game.applicationID}`);
+        db_set(message.guild.id, days, `timeouts.${game.applicationID}`);
         reply(message, `set timeout for **${game.name}** (${game.applicationID}) to **${days} days**`)
     }
 }
@@ -561,7 +545,7 @@ function onUnsetGameTimeout(message, game) {
 
 function doUnsetGameTimeout(message, game) {
     if (game) {
-        db.delete(message.guild.id, `timeouts.${game.applicationID}`);
+        db_delete(message.guild.id, `timeouts.${game.applicationID}`);
         reply(message, `removed timeout for **${game.name}** (${game.applicationID})`)
     }
 }
@@ -576,7 +560,7 @@ function onGetGameTimeout(message, game) {
 
 function doGetGameTimeout(message, game) {
     if (game) {
-        const days = db.get(message.guild.id, `timeouts.${game.applicationID}`);
+        const days = db_get(message.guild.id, `timeouts.${game.applicationID}`);
         if (days) {
             reply(message, `timeout for **${game.name}** (${game.applicationID}) is **${days} days**`)
         } else {
@@ -586,7 +570,7 @@ function doGetGameTimeout(message, game) {
 }
 
 function doGetGameTimeoutAll(message) {
-    const timeouts = db.get(message.guild.id, "timeouts");
+    const timeouts = db_get(message.guild.id, "timeouts");
     if (timeouts) {
         const games = Object.keys(timeouts).filter(key => /^\d+$/.test(key)).map(applicationID => getGame(message, applicationID));
         if (games.length > 0) {
@@ -744,13 +728,13 @@ function getGame(message, input) {
         return false
     }
     if (/^\d+$/.test(input)) {
-        const game = db.get("games", input);
+        const game = db_get("games", input);
         if (game) {
             return {applicationID: input, name: game}
         }
     }
     const search = input.toLowerCase();
-    const game = Object.entries(db.get("games")).filter(([k, v]) => v.toLowerCase().includes(search)).map(([k, v]) => ({
+    const game = Object.entries(db_get("games")).filter(([k, v]) => v.toLowerCase().includes(search)).map(([k, v]) => ({
         applicationID: k,
         name: v
     }));
@@ -813,7 +797,7 @@ function formatTimestamp(timestamp) {
 }
 
 function getTimeout(guild, key) {
-    return guild && guild.id && key ? db.get(guild.id, `timeouts.${key}`) || 0 : 0;
+    return guild && guild.id && key ? db_get(guild.id, `timeouts.${key}`) || 0 : 0;
 }
 
 function reply(message, content) {
@@ -893,27 +877,27 @@ function isMemberPlayingGame(member) {
 
 function updateLastMessage(message) {
     log("update", `guild=${message.guild.id}|member=${message.author.id}`, "lastMessage", message.createdTimestamp);
-    db.set(message.guild.id, message.createdTimestamp, `members.${message.author.id}.lastMessage`)
+    db_set(message.guild.id, message.createdTimestamp, `members.${message.author.id}.lastMessage`)
 }
 
 function updateLastOnline(member, performedAction = false) {
     if (performedAction || member.presence.status === "online") {
         const now = new Date().getTime();
         log("update", `guild=${member.guild.id}|member=${member.id}`, "lastOnline", now);
-        db.set(member.guild.id, now, `members.${member.id}.lastOnline`)
+        db_set(member.guild.id, now, `members.${member.id}.lastOnline`)
     }
 }
 
 function updateLastPlaying(member) {
     const now = new Date().getTime();
     log("update", `guild=${member.guild.id}|member=${member.id}|game=${member.presence.game.applicationID}`, "lastPlaying", now);
-    db.set(member.guild.id, now, `members.${member.id}.${member.presence.game.applicationID}`);
+    db_set(member.guild.id, now, `members.${member.id}.${member.presence.game.applicationID}`);
     updateGame(member.presence.game)
 }
 
 function updateGame(game) {
     log("update", `game=${game.applicationID}`, "->", game.name);
-    db.set("games", game.name, game.applicationID)
+    db_set("games", game.name, game.applicationID)
 }
 
 function onGuildMemberUpdate(oldMember, newMember) {
@@ -923,34 +907,34 @@ function onGuildMemberUpdate(oldMember, newMember) {
 }
 
 function updateJoined(member) {
-    if (!db.has(member.guild.id, `members.${member.id}.joined`)) {
+    if (!db_has(member.guild.id, `members.${member.id}.joined`)) {
         const now = new Date().getTime();
         log("update", `guild=${member.guild.id}|member=${member.id}`, "joined", now);
-        db.set(member.guild.id, now, `members.${member.id}.joined`)
+        db_set(member.guild.id, now, `members.${member.id}.joined`)
     }
 }
 
 function onGuildDelete(guild) {
     if (guild) {
         log("update", `guild=${guild.id}`, "guildDelete");
-        db.delete(guild.id)
+        db_delete(guild.id)
     }
 }
 
 function onGuildMemberRemove(member) {
     if (member.guild) {
         log("update", `guild=${member.guild.id}`, "guildMemberRemove", member.id);
-        db.delete(member.guild.id, member.id)
+        db_delete(member.guild.id, member.id)
     }
 }
 
 function onRoleDelete(role) {
     if (role.guild) {
         log("update", `guild=${role.guild.id}`, "roleDelete", role.id);
-        db.remove(role.guild.id, role.id, "roles.initiate");
-        db.remove(role.guild.id, role.id, "roles.member");
-        db.remove(role.guild.id, role.id, "roles.mod");
-        db.remove(role.guild.id, role.id, "roles.admin")
+        db_remove(role.guild.id, role.id, "roles.initiate");
+        db_remove(role.guild.id, role.id, "roles.member");
+        db_remove(role.guild.id, role.id, "roles.mod");
+        db_remove(role.guild.id, role.id, "roles.admin")
     }
 }
 
