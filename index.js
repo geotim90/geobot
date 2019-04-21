@@ -304,7 +304,10 @@ function doReport(message) {
             }
         }
     }
-    send(message, report1 + "\n\n" + report2 + "\n\n" + report3 + "\n\n" + report4)
+    send(message, report1)
+    send(message, report2)
+    send(message, report3)
+    send(message, report4)
 }
 
 function onSetContribution(message, member) {
