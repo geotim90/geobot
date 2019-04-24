@@ -46,7 +46,7 @@ public class ModulesCommand extends AbstractCommand {
 
     private final ModuleService moduleService;
 
-    protected ModulesCommand(@Autowired ModuleService moduleService) {
+    public ModulesCommand(@Autowired ModuleService moduleService) {
         super("Use the **modules** command to activate or deactivate Geobot modules on your server.",
                 Modules.CORE, KEYWORD);
         this.moduleService = moduleService;

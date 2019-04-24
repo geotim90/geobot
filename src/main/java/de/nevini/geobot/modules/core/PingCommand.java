@@ -22,7 +22,7 @@ public class PingCommand extends AbstractCommand {
             (context, matcher) -> onHelp(context)
     );
 
-    protected PingCommand() {
+    public PingCommand() {
         super("Use the **ping** command to measure the latency between Discord and Geobot.",
                 Modules.CORE, KEYWORD);
     }

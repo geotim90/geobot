@@ -30,7 +30,7 @@ Option                    | Description
 --------------------------|------------
 (--channel) \[*channel*\] | A channel ID, mention or name.<br>If no *channel* is provided, this will refer to the current channel.<br>The `--channel` flag is optional if a channel mention is used.
 --game \<*game*\>         | A game ID or name.
---node \<*node*\>         | A permission node (see core module documentation on permissions).
+--node \<*nodes*\>        | One or more permission *nodes* (see core module documentation on permissions).
 (--role) \<*role*\>       | A role ID, mention or name.<br>The `--role` flag is optional if a role mention is used.
 (--user) \[*user*\]       | Can be a user ID, mention or name.<br>If no *user* is provided, this will refer to the current user.<br>The `--user` flag is optional if a user mention is used.
 

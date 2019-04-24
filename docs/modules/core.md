@@ -59,13 +59,13 @@ Order | Permission type          | Options
 Users cannot configure permissions for roles above their own or grant permissions for nodes they do not have access to themselves.
 Users cannot configure permissions for users with roles above their own or grant permissions for nodes they do not have access to themselves.
 
-Command                            | Permission node          | Description
------------------------------------|--------------------------|------------
-**permissions** (get) \<*target*\> | `core.permissions.get`   | Lists the effective permissions for the provided *target* (see options below). 
-**permissions** debug \<*target*\> | `core.permissions.debug` | Lists all relevant permission node configurations for the provided *target* (see options below).
-**permissions** allow \<*target*\> | `core.permissions.allow` | Grants the provided permission *nodes* to the provided *target* (see options below).
-**permissions** deny \<*target*\>  | `core.permissions.deny`  | Refuses the provided permission *nodes* to the provided *target* (see options below).
-**permissions** reset \<*target*\> | `core.permissions.reset` | Resets the provided permission *nodes* for the provided *target* (see options below).
+Command                                        | Permission node          | Description
+-----------------------------------------------|--------------------------|------------
+**permissions** (get) \<*target*\>             | `core.permissions.get`   | Lists the effective permissions for the provided *target* (see options below). 
+**permissions** debug \<*target*\>             | `core.permissions.debug` | Lists all relevant permission node configurations for the provided *target* (see options below).
+**permissions** allow \<*nodes*\> \<*target*\> | `core.permissions.allow` | Grants the provided permission *nodes* to the provided *target* (see options below).
+**permissions** deny \<*nodes*\> \<*target*\>  | `core.permissions.deny`  | Refuses the provided permission *nodes* to the provided *target* (see options below).
+**permissions** reset \<*nodes*\> \<*target*\> | `core.permissions.reset` | Resets the provided permission *nodes* for the provided *target* (see options below).
 
 Option                  | Description
 ------------------------|------------
