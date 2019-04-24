@@ -99,7 +99,7 @@ public class HelpCommand extends AbstractCommand {
     }
 
     private void doChannelCommandList(CommandContext context) {
-        final List<TextChannel> channels = context.getArguments().getChannelReferences(context);
+        final List<TextChannel> channels = context.getArguments().getChannelReferences();
         final TextChannel channel;
         if (channels.isEmpty()) {
             channel = context.getMessage().getTextChannel();
