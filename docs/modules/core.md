@@ -42,8 +42,8 @@ Command                         | Permission node       | Description
 
 Use the **permissions** command to configure which users are allowed to execute which commands in which channels.
 
-Permissions are denied to everyone by default.
 Server administrators are not restricted by permissions.
+Permissions are denied to everyone else by default.
 Configured permissions are applied in the following order.
 Each step overrides any previous permissions when calculating the effective permissions.
 

@@ -2,7 +2,6 @@ package de.nevini.geobot.services;
 
 import de.nevini.geobot.data.prefix.Prefix;
 import de.nevini.geobot.data.prefix.PrefixRepository;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -24,7 +23,7 @@ public class PrefixService {
     private final String prefixName;
 
     public PrefixService(
-            @Autowired @NonNull PrefixRepository prefixRepository,
+            @Autowired PrefixRepository prefixRepository,
             @Value("${geobot.prefix.default:G>}") String prefixDefault,
             @Value("${geobot.prefix.mention:true}") boolean prefixMention,
             @Value("${geobot.prefix.name:Geobot}") String prefixName

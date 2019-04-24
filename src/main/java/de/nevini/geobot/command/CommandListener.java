@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 @ShardEventListener
 public class CommandListener {
 
+    private final Resolvers resolvers;
     private final PrefixService prefixService;
     private final ModuleService moduleService;
     private final PermissionService permissionService;
@@ -27,6 +28,7 @@ public class CommandListener {
 
     public CommandListener(
             @Autowired ApplicationContext applicationContext,
+            @Autowired Resolvers resolvers,
             @Autowired PrefixService prefixService,
             @Autowired ModuleService moduleService,
             @Autowired PermissionService permissionService
@@ -44,6 +46,7 @@ public class CommandListener {
             }
         }
         this.commands = Collections.unmodifiableMap(commands);
+        this.resolvers = resolvers;
         this.prefixService = prefixService;
         this.moduleService = moduleService;
         this.permissionService = permissionService;
@@ -51,7 +54,7 @@ public class CommandListener {
 
     @SubscribeEvent
     public void onGuildMessageReceived(GuildMessageReceivedEvent e) {
-        final CommandContext context = new CommandContext(e, prefixService);
+        final CommandContext context = new CommandContext(e, resolvers, prefixService);
         updateMDC(context);
         log.debug("Received message");
         if (context.isRelevantCommand()) {
@@ -63,22 +66,22 @@ public class CommandListener {
     private void processCommand(CommandContext context) {
         final Optional<String> keyword = context.getCommand();
         if (!keyword.isPresent()) {
-            CommandResponder.replyNoCommand(context);
+            context.getResponder().replyNoCommand();
             return;
         }
 
         final AbstractCommand command = commands.get(keyword.get());
         if (command == null) {
-            CommandResponder.replyInvalidCommand(context);
+            context.getResponder().replyInvalidCommand();
             return;
         }
 
         if (!moduleService.isModuleActive(context.getMessage().getGuild(), command.getModule())) {
-            CommandResponder.replyInactiveModule(context);
+            context.getResponder().replyInactiveModule();
             return;
         }
 
-        final String input = context.getArgument().orElse(StringUtils.EMPTY);
+        final String input = context.getArguments().getArgument().orElse(StringUtils.EMPTY);
         for (CommandMatcher commandMatcher : command.getCommandMatchers()) {
             final Matcher matcher = commandMatcher.match(input);
             if (matcher.matches()) {
@@ -89,7 +92,7 @@ public class CommandListener {
                         commandMatcher.getCommandMethod().accept(context, matcher);
                     }
                 } else {
-                    CommandResponder.replyMissingPermissions(context);
+                    context.getResponder().replyMissingPermissions();
                 }
                 return;
             }
@@ -98,7 +101,7 @@ public class CommandListener {
         if (context.isHelp()) {
             command.onHelp(context);
         } else {
-            CommandResponder.replyInvalidArgument(context);
+            context.getResponder().replyInvalidArgument();
         }
     }
 

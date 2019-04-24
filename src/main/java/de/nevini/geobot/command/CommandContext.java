@@ -7,25 +7,17 @@ import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import org.springframework.data.util.Lazy;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Value
 public class CommandContext {
 
-    private static final Pattern ARGUMENTS_PATTERN = Pattern.compile("(?i)(?:help\\s+)?(?:\\w+)\\s+(.+)");
     private static final Pattern COMMAND_PATTERN = Pattern.compile("(?i)(?:help\\s+)?(\\w+)(?:\\s+.+)?");
     private static final Pattern HELP_COMMAND_PATTERN = Pattern.compile("(?i)(?:help)(?:\\s+.+)?");
     private static final Pattern HELP_FLAG_PATTERN = Pattern.compile("(?i)(?:(?:--|//)help|[-/]\\?)");
-
-    private static final String MENTION_REGEX = "(?:(?:(?:--|//)\\w+|[-/]\\w)\\s+)?<(?:@&?|#)\\d+>";
-    private static final String OPTION_REGEX = "(?:(?:--|//)\\w+|[-/]\\w)(?:\\s+.+)?";
 
     private final GuildMessageReceivedEvent event;
 
@@ -33,10 +25,10 @@ public class CommandContext {
     private final Lazy<String> prefix = Lazy.of(this::_getPrefix);
     private final Lazy<Boolean> help = Lazy.of(this::_isHelp);
     private final Lazy<String> command = Lazy.of(this::_getCommand);
-    private final Lazy<List<String>> arguments = Lazy.of(this::_getArguments);
-    private final Lazy<String> argument = Lazy.of(this::_getArgument);
-    private final Lazy<List<String>> options = Lazy.of(this::_getOptions);
+    private final Lazy<CommandArguments> arguments = Lazy.of(this::_getArguments);
+    private final Lazy<CommandResponder> responder = Lazy.of(this::_getResponder);
 
+    private final Resolvers resolvers;
     private final PrefixService prefixService;
 
     public boolean isRelevantCommand() {
@@ -56,7 +48,7 @@ public class CommandContext {
         }
     }
 
-    private Optional<String> getPrefix() {
+    public Optional<String> getPrefix() {
         return prefix.getOptional();
     }
 
@@ -94,43 +86,20 @@ public class CommandContext {
         }
     }
 
-    private List<String> getArguments() {
-        return arguments.orElse(Collections.emptyList());
+    public CommandArguments getArguments() {
+        return arguments.get();
     }
 
-    private List<String> _getArguments() {
-        final String prefix = getPrefix().orElse("");
-        final String input = getMessage().getContentRaw().substring(prefix.length()).trim();
-        final Matcher argumentsMatcher = ARGUMENTS_PATTERN.matcher(input);
-        if (argumentsMatcher.matches()) {
-            return Arrays.asList(argumentsMatcher.group(1).split("\\s+(?=" + OPTION_REGEX + "|" + MENTION_REGEX + ")"));
-        } else {
-            return null;
-        }
+    private CommandArguments _getArguments() {
+        return new CommandArguments(this);
     }
 
-    public Optional<String> getArgument() {
-        return argument.getOptional();
+    public CommandResponder getResponder() {
+        return responder.get();
     }
 
-    private String _getArgument() {
-        final Optional<String> argument = getArguments().stream().findFirst();
-        if (argument.isPresent() && !argument.get().matches(OPTION_REGEX) && !argument.get().matches(MENTION_REGEX)) {
-            return argument.get();
-        } else {
-            return null;
-        }
-    }
-
-    public List<String> getOptions() {
-        return options.orElse(Collections.emptyList());
-    }
-
-    private List<String> _getOptions() {
-        return getArguments()
-                .stream()
-                .filter(argument -> argument.matches(OPTION_REGEX) || argument.matches(MENTION_REGEX))
-                .collect(Collectors.toList());
+    private CommandResponder _getResponder() {
+        return new CommandResponder(this);
     }
 
     // @Delegate
