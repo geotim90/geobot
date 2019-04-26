@@ -230,12 +230,14 @@ function doReport(message) {
         const joined = db_get(message.guild.id, `members.${member.id}.joined`);
         const contribution = db_get(message.guild.id, `members.${member.id}.contribution`);
         const timeout = getTimeout(message.guild, "contribution");
-        if (contribution) {
-            report1 += `\n✅ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
+        if (contribution && getDaysAgo(joined) < timeout) {
+            report1 += `\n✔️ **${getName(member)}** joined ${formatDaysAgo(joined, false)}`
+        } else if (contribution) {
+            report1 += `\n✅ **${getName(member)}** joined ${formatDaysAgo(joined, false)}`
         } else if (getDaysAgo(joined) < timeout) {
-            report2 += `\n⚠️ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
+            report2 += `\n⚠️ **${getName(member)}** joined ${formatDaysAgo(joined, false)}`
         } else {
-            report2 += `\n❌ **${getName(member)}** (${member.id}) joined ${formatDaysAgo(joined)}`
+            report2 += `\n❌ **${getName(member)}** joined ${formatDaysAgo(joined, false)}`
         }
     }
     const members = message.guild.members.filter(member => hasRole(member, "member"));
@@ -297,16 +299,16 @@ function doReport(message) {
             }
             if (anyInactive) {
                 if (anyActive) {
-                    report4 += `\n⚠️ **${getName(member)}** (${member.id}) ${maxTimeout.activity} ${formatDaysAgo(maxTimeout.timestamp)}`
+                    report4 += `\n⚠️ **${getName(member)}** ${maxTimeout.activity} ${formatDaysAgo(maxTimeout.timestamp, false)}`
                 } else {
-                    report3 += `\n❌ **${getName(member)}** (${member.id}) ${minTimeout.activity} ${formatDaysAgo(minTimeout.timestamp)}`
+                    report3 += `\n❌ **${getName(member)}** ${minTimeout.activity} ${formatDaysAgo(minTimeout.timestamp, false)}`
                 }
             }
         }
     }
-    send(message, report1)
-    send(message, report2)
-    send(message, report3)
+    send(message, report1);
+    send(message, report2);
+    send(message, report3);
     send(message, report4)
 }
 
@@ -773,9 +775,13 @@ function getName(member) {
     }
 }
 
-function formatDaysAgo(timestamp) {
+function formatDaysAgo(timestamp, includeTimestamp = true) {
     if (/^\d+$/.test(timestamp)) {
-        return `**${getDaysAgo(timestamp)} days ago** (${formatTimestamp(timestamp)})`
+        if (includeTimestamp) {
+            return `**${getDaysAgo(timestamp)} days ago** (${formatTimestamp(timestamp)})`
+        } else {
+            return `**${getDaysAgo(timestamp)} days ago**`
+        }
     } else {
         return "**undefined**"
     }
