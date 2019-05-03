@@ -52,74 +52,78 @@ const LAST_PLAYED = /^lastPlayed\b/i;
 function onMessage(message) {
     if (isRelevantMessage(message)) {
         log("event", `guild=${message.guild.id}|message=${message.id}`, "message");
-        if (isBotCommand(message) && isBotCommandChannel(message) && isModOrAdmin(message.member)) {
-            // extract cmd and args from message
-            const cmd = message.content.substring(message.content.indexOf('>') + 1).trim();
-            const args = cmd.split(/\s+/g);
-            // process command
-            log("command", `guild=${message.guild.id}|message=${message.id}`, JSON.stringify(cmd));
-            if (PING.test(cmd)) {
-                onPing(message)
-            } else if (HELP.test(cmd)) {
-                onHelp(message, args[1])
-            } else if (REPORT.test(cmd)) {
-                onReport(message, args[1])
-            } else if (CONTRIBUTION.test(args[1])) {
-                if (SET.test(args[0])) {
-                    onSetContribution(message, args[2])
-                } else if (GET.test(args[0])) {
-                    onGetContribution(message, args[2])
-                } else if (UNSET.test(args[0])) {
-                    onUnsetContribution(message, args[2])
-                } else {
+        if (isBotCommand(message) && isBotCommandChannel(message)) {
+            if (isModOrAdmin(message.member)) {
+                // extract cmd and args from message
+                const cmd = message.content.substring(message.content.indexOf('>') + 1).trim();
+                const args = cmd.split(/\s+/g);
+                // process command
+                log("command", `guild=${message.guild.id}|message=${message.id}`, JSON.stringify(cmd));
+                if (PING.test(cmd)) {
+                    onPing(message)
+                } else if (HELP.test(cmd)) {
                     onHelp(message, args[1])
-                }
-            } else if (ROLE.test(args[1])) {
-                if (ADD.test(args[0])) {
-                    onAddRole(message, args[2], args[3])
-                } else if (REMOVE.test(args[0])) {
-                    onRemoveRole(message, args[2], args[3])
-                } else if (GET.test(args[0])) {
-                    onGetRole(message, args[2], args[3])
-                } else {
-                    onHelp(message, args[1])
-                }
-            } else if (TIMEOUT.test(args[1])) {
-                if (SET.test(args[0])) {
-                    onSetTimeout(message, args[2], args[3])
-                } else if (UNSET.test(args[0])) {
-                    onUnsetTimeout(message, args[2])
-                } else if (GET.test(args[0])) {
-                    onGetTimeout(message, args[2])
-                } else {
-                    onHelp(message, args[1])
-                }
-            } else if (MEMBER.test(args[1])) {
-                if (SET.test(args[0])) {
-                    onSetMember(message, args[2], args[3], args[4], args[5])
-                } else if (UNSET.test(args[0])) {
-                    onUnsetMember(message, args[2], args[3], args[4])
-                } else if (GET.test(args[0])) {
-                    onGetMember(message, args[2], args[3], args[4])
-                } else {
-                    onHelp(message, args[1])
-                }
-            } else if (GAME.test(args[1])) {
-                if (TIMEOUT.test(args[2])) {
+                } else if (REPORT.test(cmd)) {
+                    onReport(message, args[1])
+                } else if (CONTRIBUTION.test(args[1])) {
                     if (SET.test(args[0])) {
-                        onSetGameTimeout(message, args[3], args[4])
-                    } else if (UNSET.test(args[0])) {
-                        onUnsetGameTimeout(message, args[3])
+                        onSetContribution(message, args[2])
                     } else if (GET.test(args[0])) {
-                        onGetGameTimeout(message, args[3])
+                        onGetContribution(message, args[2])
+                    } else if (UNSET.test(args[0])) {
+                        onUnsetContribution(message, args[2])
+                    } else {
+                        onHelp(message, args[1])
+                    }
+                } else if (ROLE.test(args[1])) {
+                    if (ADD.test(args[0])) {
+                        onAddRole(message, args[2], args[3])
+                    } else if (REMOVE.test(args[0])) {
+                        onRemoveRole(message, args[2], args[3])
+                    } else if (GET.test(args[0])) {
+                        onGetRole(message, args[2], args[3])
+                    } else {
+                        onHelp(message, args[1])
+                    }
+                } else if (TIMEOUT.test(args[1])) {
+                    if (SET.test(args[0])) {
+                        onSetTimeout(message, args[2], args[3])
+                    } else if (UNSET.test(args[0])) {
+                        onUnsetTimeout(message, args[2])
+                    } else if (GET.test(args[0])) {
+                        onGetTimeout(message, args[2])
+                    } else {
+                        onHelp(message, args[1])
+                    }
+                } else if (MEMBER.test(args[1])) {
+                    if (SET.test(args[0])) {
+                        onSetMember(message, args[2], args[3], args[4], args[5])
+                    } else if (UNSET.test(args[0])) {
+                        onUnsetMember(message, args[2], args[3], args[4])
+                    } else if (GET.test(args[0])) {
+                        onGetMember(message, args[2], args[3], args[4])
+                    } else {
+                        onHelp(message, args[1])
+                    }
+                } else if (GAME.test(args[1])) {
+                    if (TIMEOUT.test(args[2])) {
+                        if (SET.test(args[0])) {
+                            onSetGameTimeout(message, args[3], args[4])
+                        } else if (UNSET.test(args[0])) {
+                            onUnsetGameTimeout(message, args[3])
+                        } else if (GET.test(args[0])) {
+                            onGetGameTimeout(message, args[3])
+                        } else {
+                            onHelp(message, args[1])
+                        }
                     } else {
                         onHelp(message, args[1])
                     }
                 } else {
-                    onHelp(message, args[1])
+                    onReportSelf(message)
                 }
             } else {
-                onHelp(message, cmd)
+                onReportSelf(message)
             }
         }
         // update activity
@@ -590,6 +594,37 @@ function doGetGameTimeoutAll(message) {
     } else {
         reply(message, `timeout for **lastPlayed** is **undefined**`)
     }
+}
+
+function onReportSelf(message) {
+    const member = message.member;
+    const data = db_get(message.guild.id, `members.${member.id}`);
+    let result = `this is what I have on you:`;
+    result += `\n\n__**Role**__`;
+    if (hasRole(member, "admin")) {
+        result += `\nAdmin`
+    } else if (hasRole(member, "mod")) {
+        result += `\nMod`
+    } else if (hasRole(member, "member")) {
+        result += `\nMember`
+    } else if (hasRole(member, "initiate")) {
+        result += `\nInitiate`
+    } else {
+        result += `\n(none)`
+    }
+    result += `\n\n__**Activity**__`;
+    if (data) {
+        result += `\n${data["joined"] ? "✅" : (hasRole(member, "initiate") ? "❌" : "⚠️")} Joined: ${formatDaysAgo(data["joined"])}`;
+        result += `\n${data["contribution"] ? "✅" : (!hasRole(member, "initiate") || getDaysAgo(data["joined"]) < getTimeout(message.guild, "contribution") ? "⚠️" : "❌")} Contribution: **${data["contribution"] ? "yes" : "no"}**`;
+        const applicationIDs = db_get(message.guild.id, "timeouts");
+        if (applicationIDs) {
+            const games = Object.keys(applicationIDs).filter(applicationID => /^\d+$/.test(applicationID)).map(applicationID => getGame(message, applicationID));
+            games.forEach(game => result += `\n${getDaysAgo(data[game.applicationID]) < (getTimeout(message.guild, game.applicationID) || Infinity) ? "✅" : (!hasRole(member, "member") ? "⚠️" : "❌")} Last played **${game.name}** (${game.applicationID}): ${formatDaysAgo(data[game.applicationID])}`);
+        }
+    } else {
+        result += `\n**undefined**`
+    }
+    reply(message, result)
 }
 
 function requireAdmin(message) {
