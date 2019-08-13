@@ -148,7 +148,7 @@ function isBotCommand(message) {
         // message must contain a parsable string
         typeof message.content === "string"
         // bot must be addressed directly
-        && message.content.startsWith("<@" + client.user.id + ">")
+        && (message.content.startsWith("<@" + client.user.id + ">") || message.content.startsWith("<@!" + client.user.id + ">"))
     )
 }
 
